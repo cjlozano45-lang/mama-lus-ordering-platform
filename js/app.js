@@ -115,6 +115,7 @@ function bindEvents() {
   els.cateringPhone.addEventListener("focus", () => ensureAreaCode(els.cateringPhone));
   els.groupPersonName.addEventListener("input", clearGroupNameRequired);
   els.groupPersonName.addEventListener("keydown", handleGroupNameKeydown);
+  if (els.groupBurritoSelect) els.groupBurritoSelect.addEventListener("change", syncGroupBeansAvailability);
   if (els.cateringModal) {
     els.cateringModal.addEventListener("keydown", preventCateringEnterSubmit);
     const cateringForm = els.cateringModal.querySelector("form");
@@ -123,23 +124,9 @@ function bindEvents() {
   els.customerForm.addEventListener("submit", handleReviewOrder);
   els.submitOrderButton.addEventListener("click", submitReviewedOrder);
   els.newOrderButton.addEventListener("click", resetOrder);
-  if (els.openCatering) els.openCatering.addEventListener("click", () => { syncGroupBeansAvailability(); renderGroupOrderList(); els.cateringModal.showModal(); });
-  if (els.openCateringHero) els.openCateringHero.addEventListener("click", () => { syncGroupBeansAvailability(); renderGroupOrderList(); els.cateringModal.showModal(); });
-  if (els.addGroupPersonButton) els.addGroupPersonButton.addEventListener("click", addGroupPersonOrder);
-
-  // RC7.19: make modal close behavior explicit and reliable.
-  document.querySelectorAll(".modal-close").forEach(button => {
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      const dialog = button.closest("dialog");
-      if (dialog) dialog.close();
-    });
-  });
-  if (els.cateringModal) {
-    els.cateringModal.addEventListener("click", event => {
-      if (event.target === els.cateringModal) els.cateringModal.close();
-    });
-  }
+  if (els.openCatering) els.openCatering.addEventListener("click", () => els.cateringModal.showModal());
+  if (els.openCateringHero) els.openCateringHero.addEventListener("click", () => els.cateringModal.showModal());
+  els.addGroupPersonButton.addEventListener("click", addGroupPersonOrder);
   els.submitCateringButton.addEventListener("click", (event) => { event.preventDefault(); reviewCateringOrder(); });
 }
 
@@ -234,6 +221,7 @@ function renderGroupBurritoOptions() {
   els.groupBurritoSelect.innerHTML = `<option value="">Select a burrito</option>` + burritos.map(item =>
     `<option value="${item.id}">${item.name} - ${formatMenuPrice(item.price)}</option>`
   ).join("");
+  syncGroupBeansAvailability();
 }
 
 function addGroupPersonOrder() {
@@ -246,7 +234,7 @@ function addGroupPersonOrder() {
   }
   if (!item) return showStatus("Please choose a burrito for this person.");
 
-  const beans = els.groupBeansCheckbox.checked;
+  const beans = itemSupportsBeans(item) && els.groupBeansCheckbox.checked;
   const orderEntry = {
     uid: state.editingGroupUid || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())),
     personName,
@@ -272,6 +260,7 @@ function addGroupPersonOrder() {
   els.groupPersonName.value = "";
   els.groupBurritoSelect.value = "";
   els.groupBeansCheckbox.checked = false;
+  syncGroupBeansAvailability();
   renderGroupOrderList();
   els.groupPersonName.focus();
 }
@@ -281,8 +270,6 @@ function renderGroupOrderList() {
   const groupTotal = state.cateringItems.reduce((sum, item) => sum + item.price, 0);
   if (els.addGroupPersonButton) {
     els.addGroupPersonButton.textContent = state.editingGroupUid ? "Save Person" : (state.cateringItems.length ? "Add Another Person" : "Add Person");
-    els.addGroupPersonButton.classList.remove("hidden");
-    els.addGroupPersonButton.disabled = false;
   }
 
   if (els.groupOrderStats) {
@@ -335,7 +322,8 @@ function renderGroupOrderList() {
 
       const duplicateName = els.groupPersonName.value.trim();
       els.groupBurritoSelect.value = item.id;
-      els.groupBeansCheckbox.checked = item.extras.some(extra => extra.id === "beans");
+      els.groupBeansCheckbox.checked = itemSupportsBeans(item) && item.extras.some(extra => extra.id === "beans");
+      syncGroupBeansAvailability();
 
       if (!duplicateName) {
         markGroupNameRequired();
@@ -360,6 +348,7 @@ function renderGroupOrderList() {
       els.groupPersonName.value = "";
       els.groupBurritoSelect.value = "";
       els.groupBeansCheckbox.checked = false;
+      syncGroupBeansAvailability();
       renderGroupOrderList();
       els.groupPersonName.focus();
       showStatus(`Duplicated order added for ${duplicateName}.`);
@@ -393,6 +382,7 @@ function renderGroupOrderList() {
       els.groupPersonName.value = item.personName;
       els.groupBurritoSelect.value = item.id;
       els.groupBeansCheckbox.checked = false;
+      syncGroupBeansAvailability();
       renderGroupOrderList();
       els.groupBurritoSelect.scrollIntoView({ behavior: "smooth", block: "center" });
       setTimeout(() => {
@@ -483,6 +473,7 @@ function openCustomizer(itemId) {
   els.modalItemName.textContent = item.name;
   els.modalItemDescription.textContent = item.description;
   els.beansCheckbox.checked = false;
+  syncCustomizerBeansAvailability(item);
   setModalQty(1);
   els.customizeModal.showModal();
 }
@@ -494,7 +485,7 @@ function setModalQty(qty) {
 
 function addSelectedToCart() {
   if (!state.selectedItem) return;
-  const beans = els.beansCheckbox.checked;
+  const beans = itemSupportsBeans(state.selectedItem) && els.beansCheckbox.checked;
   for (let i = 0; i < state.selectedQty; i++) {
     state.cart.push({
       uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
@@ -659,6 +650,7 @@ function resetCateringBuilder() {
   if (els.groupPersonName) els.groupPersonName.value = "";
   if (els.groupBurritoSelect) els.groupBurritoSelect.value = "";
   if (els.groupBeansCheckbox) els.groupBeansCheckbox.checked = false;
+  syncGroupBeansAvailability();
   const textPref = document.querySelector('input[name="cateringContactPreference"][value="Text"]');
   if (textPref) textPref.checked = true;
   saveCateringItems();
@@ -768,6 +760,27 @@ function getBurritoCount() {
 
 function findMenuItem(id) {
   return MENU.categories.flatMap(category => category.items).find(item => item.id === id);
+}
+
+function itemSupportsBeans(itemOrId) {
+  const item = typeof itemOrId === "string" ? findMenuItem(itemOrId) : itemOrId;
+  return !!item && item.id !== "bean-cheese";
+}
+
+function syncCustomizerBeansAvailability(item) {
+  if (!els.beansCheckbox) return;
+  const option = els.beansCheckbox.closest(".extra-option");
+  const supportsBeans = itemSupportsBeans(item);
+  if (!supportsBeans) els.beansCheckbox.checked = false;
+  if (option) option.classList.toggle("hidden", !supportsBeans);
+}
+
+function syncGroupBeansAvailability() {
+  if (!els.groupBeansCheckbox || !els.groupBurritoSelect) return;
+  const option = els.groupBeansCheckbox.closest(".group-extra-option");
+  const supportsBeans = itemSupportsBeans(els.groupBurritoSelect.value);
+  if (!supportsBeans) els.groupBeansCheckbox.checked = false;
+  if (option) option.classList.toggle("hidden", !supportsBeans);
 }
 
 function openCart() {

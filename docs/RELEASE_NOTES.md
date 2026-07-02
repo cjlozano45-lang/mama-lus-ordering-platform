@@ -1,10 +1,3 @@
-## RC7.19 – Group Order Stabilization
-
-- Fixed Office & Group Order modal close X.
-- Clicking the backdrop now closes the group order modal.
-- Restored a full-width Add Person / Add Another Person button.
-- Bean & Cheese now hides Add Beans and cannot receive that extra.
-
 
 ## RC7.4 — Required Email + Field Alignment
 
@@ -194,3 +187,9 @@
 - Fixed Edit Burrito so it does not automatically check Add Beans.
 - Added additional customer receipt recipient aliases for EmailJS template compatibility.
 - Note: EmailJS template To Email must be set to `{{to_email}}` for customer receipts to go to the customer-entered email.
+
+
+## RC7.18
+- Restored Add Person / Add Another Person visibility in Office & Group Orders.
+- Hid Add Beans for Bean & Cheese in regular and group orders.
+- Added a guard so Bean & Cheese cannot accidentally receive the beans extra.
