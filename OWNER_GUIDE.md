@@ -121,3 +121,28 @@ The EmailJS subject should be:
 ```text
 Mama Lu's Order - {{order_number}}
 ```
+
+
+## Customer Receipt Emails
+
+Version RC7.3 adds optional customer receipt emails. To make this work in EmailJS, set the template **To Email** field to:
+
+```text
+{{to_email}}
+```
+
+The website will send:
+- Kitchen order email to `c.j.lozano88@gmail.com`
+- Optional receipt email to the customer or group organizer if they entered an email address
+
+The EmailJS template body should remain:
+
+```text
+{{order_body}}
+```
+
+The EmailJS subject should remain:
+
+```text
+{{order_subject}}
+```

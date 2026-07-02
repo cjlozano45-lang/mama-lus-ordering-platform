@@ -117,3 +117,19 @@ Test the homepage on mobile first. Confirm that the logo is the focal point, bot
 - Phone fields now auto-populate the 915 area code for faster local orders.
 - EmailJS remains connected.
 - Group orders and regular orders remain enabled.
+
+## RC7.3 - Receipt Email + Group Time Cleanup
+
+### Added
+- Optional Email Address field to regular checkout for customer receipt copies.
+- Optional Email Address field to Office & Group Orders for organizer receipt copies.
+- Customer receipt email delivery when an email address is entered.
+
+### Changed
+- Removed Requested Time from Office & Group Orders for Version 1 launch.
+- Kept Requested Date as optional for future planning without adding time pressure.
+- Preserved Preferred Contact wording.
+
+### Important EmailJS Note
+- To send receipts to customers, the EmailJS template **To Email** field should use `{{to_email}}` instead of a fixed email address. The app sends the kitchen email to Mama Lu's and the optional receipt to the customer using that field.
+

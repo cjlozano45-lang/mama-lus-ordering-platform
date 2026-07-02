@@ -136,3 +136,19 @@
 - Routed Office & Group Orders through the same EmailJS delivery helper used by regular orders.
 - Added fallback EmailJS template fields (`message`, `title`, `order_subject`) for better compatibility with EmailJS template variations.
 - Added console logging for EmailJS send results during test mode troubleshooting.
+
+## RC7.3 - Receipt Email + Group Time Cleanup
+
+### Added
+- Optional Email Address field to regular checkout for customer receipt copies.
+- Optional Email Address field to Office & Group Orders for organizer receipt copies.
+- Customer receipt email delivery when an email address is entered.
+
+### Changed
+- Removed Requested Time from Office & Group Orders for Version 1 launch.
+- Kept Requested Date as optional for future planning without adding time pressure.
+- Preserved Preferred Contact wording.
+
+### Important EmailJS Note
+- To send receipts to customers, the EmailJS template **To Email** field should use `{{to_email}}` instead of a fixed email address. The app sends the kitchen email to Mama Lu's and the optional receipt to the customer using that field.
+

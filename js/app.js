@@ -60,6 +60,7 @@ function cacheElements() {
     customerForm: document.getElementById("customerForm"),
     customerName: document.getElementById("customerName"),
     customerPhone: document.getElementById("customerPhone"),
+    customerEmail: document.getElementById("customerEmail"),
     specialInstructions: document.getElementById("specialInstructions"),
     reviewModal: document.getElementById("reviewModal"),
     reviewContent: document.getElementById("reviewContent"),
@@ -71,6 +72,7 @@ function cacheElements() {
     openCateringHero: document.getElementById("openCateringHero"),
     cateringModal: document.getElementById("cateringModal"),
     cateringPhone: document.getElementById("cateringPhone"),
+    cateringEmail: document.getElementById("cateringEmail"),
     groupPersonName: document.getElementById("groupPersonName"),
     groupPersonNameHint: document.getElementById("groupPersonNameHint"),
     groupBurritoSelect: document.getElementById("groupBurritoSelect"),
@@ -537,6 +539,7 @@ function handleReviewOrder(event) {
   if (!state.cart.length) return showStatus("Please add at least one item before reviewing your order.");
   if (!els.customerName.value.trim()) return showStatus("Please enter your name.");
   if (!isValidPhone(els.customerPhone.value)) return showStatus("Please enter a valid phone number in this format: (915) 555-1234.");
+  if (els.customerEmail.value.trim() && !isValidEmail(els.customerEmail.value.trim())) return showStatus("Please enter a valid email address or leave the email field blank.");
 
   const order = buildOrderPayload();
   state.pendingReviewType = "regular";
@@ -583,7 +586,7 @@ async function submitReviewedOrder() {
 function resetCateringBuilder() {
   state.cateringItems = [];
   state.editingGroupUid = null;
-  ["cateringCompany", "cateringContact", "cateringPhone", "cateringDate", "cateringTime", "cateringInstructions"].forEach(id => {
+  ["cateringCompany", "cateringContact", "cateringPhone", "cateringEmail", "cateringDate", "cateringInstructions"].forEach(id => {
     const field = document.getElementById(id);
     if (field) field.value = "";
   });
@@ -609,9 +612,11 @@ function reviewCateringOrder() {
   const company = document.getElementById("cateringCompany").value.trim();
   const contact = document.getElementById("cateringContact").value.trim();
   const phone = document.getElementById("cateringPhone").value.trim();
+  const email = document.getElementById("cateringEmail").value.trim();
   if (!company || !contact || !isValidPhone(phone) || !state.cateringItems.length) {
     return showStatus("Please complete company name, contact name, valid phone number, and add at least one person order.");
   }
+  if (email && !isValidEmail(email)) return showStatus("Please enter a valid email address or leave the email field blank.");
 
   const order = buildCateringPayload();
   state.pendingReviewType = "catering";
@@ -631,6 +636,7 @@ function buildOrderPayload() {
     customer: {
       name: els.customerName.value.trim(),
       phone: els.customerPhone.value.trim(),
+      email: els.customerEmail.value.trim(),
       contactPreference: document.querySelector('input[name="contactPreference"]:checked').value,
       specialInstructions: els.specialInstructions.value.trim()
     },
@@ -650,9 +656,9 @@ function buildCateringPayload() {
     company: document.getElementById("cateringCompany").value.trim(),
     contactName: document.getElementById("cateringContact").value.trim(),
     phone: document.getElementById("cateringPhone").value.trim(),
+    email: document.getElementById("cateringEmail").value.trim(),
     contactPreference: document.querySelector('input[name="cateringContactPreference"]:checked').value,
     requestedDate: document.getElementById("cateringDate").value,
-    requestedTime: document.getElementById("cateringTime").value,
     items,
     estimatedBurritos: items.length,
     specialInstructions: document.getElementById("cateringInstructions").value.trim(),
@@ -665,7 +671,7 @@ function renderReview(order) {
   return `
     <div class="review-block"><h3>${order.orderNumber}</h3><p>${order.date} at ${order.time}</p></div>
     <div class="review-block"><h3>Order</h3>${order.items.map(item => `<p><strong>1 × ${item.name}</strong>${item.extras.map(extra => `<br><span>+ ${extra.name}</span>`).join("")}</p>`).join("")}</div>
-    <div class="review-block"><h3>Customer</h3><p>${escapeHtml(order.customer.name)}<br>${escapeHtml(order.customer.phone)}<br>Preferred Contact: ${order.customer.contactPreference}</p>${order.customer.specialInstructions ? `<p><strong>Notes:</strong><br>${escapeHtml(order.customer.specialInstructions)}</p>` : ""}</div>
+    <div class="review-block"><h3>Customer</h3><p>${escapeHtml(order.customer.name)}<br>${escapeHtml(order.customer.phone)}${order.customer.email ? `<br>${escapeHtml(order.customer.email)}` : ""}<br>Preferred Contact: ${order.customer.contactPreference}</p>${order.customer.specialInstructions ? `<p><strong>Notes:</strong><br>${escapeHtml(order.customer.specialInstructions)}</p>` : ""}</div>
     <div class="review-totals"><div><span>Subtotal</span><strong>${formatMoney(order.totals.subtotal)}</strong></div>${SETTINGS.taxEnabled ? `<div><span>Tax</span><strong>${formatMoney(order.totals.tax)}</strong></div>` : ""}<div><span>Total</span><strong>${formatMoney(order.totals.total)}</strong></div></div>
   `;
 }
@@ -673,8 +679,7 @@ function renderReview(order) {
 function renderCateringReview(order) {
   return `
     <div class="review-block"><h3>${order.orderNumber}</h3><p>${order.date} at ${order.timeSubmitted}</p></div>
-    <div class="review-block"><h3>Group</h3><p><strong>${escapeHtml(order.company)}</strong><br>${escapeHtml(order.contactName)}<br>${escapeHtml(order.phone)}<br>Preferred Contact: ${order.contactPreference}</p></div>
-    <div class="review-block"><h3>Requested Date / Time</h3><p>${order.requestedDate || "Not specified"}<br>${order.requestedTime || "Not specified"}</p></div>
+    <div class="review-block"><h3>Group</h3><p><strong>${escapeHtml(order.company)}</strong><br>${escapeHtml(order.contactName)}<br>${escapeHtml(order.phone)}${order.email ? `<br>${escapeHtml(order.email)}` : ""}<br>Preferred Contact: ${order.contactPreference}</p>${order.requestedDate ? `<p><strong>Requested Date:</strong><br>${escapeHtml(order.requestedDate)}</p>` : ""}</div>
     <div class="review-block"><h3>Individual Orders</h3>${order.items.map(item => `<p><strong>${escapeHtml(item.personName)}</strong><br>1 × ${escapeHtml(item.name)}${item.extras.map(extra => `<br><span>+ ${escapeHtml(extra.name)}</span>`).join("")}</p>`).join("")}<p><strong>Total burritos:</strong> ${order.estimatedBurritos}</p></div>
     ${order.specialInstructions ? `<div class="review-block"><h3>Special Instructions</h3><p>${escapeHtml(order.specialInstructions)}</p></div>` : ""}
     <div class="review-totals"><div><span>Subtotal</span><strong>${formatMoney(order.totals.subtotal)}</strong></div>${SETTINGS.taxEnabled ? `<div><span>Tax</span><strong>${formatMoney(order.totals.tax)}</strong></div>` : ""}<div><span>Total</span><strong>${formatMoney(order.totals.total)}</strong></div></div>

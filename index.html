@@ -68,6 +68,10 @@
             <label class="field-label">Phone Number
               <input id="customerPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(915) 555-1234" required />
             </label>
+            <label class="field-label">Email Address <span>(optional)</span>
+              <input id="customerEmail" type="email" autocomplete="email" placeholder="you@example.com" />
+              <small class="field-hint">We'll only use this to send a copy of your order.</small>
+            </label>
           </div>
 
           <fieldset class="contact-preference">
@@ -192,13 +196,16 @@
       <button class="icon-button modal-close" value="cancel" aria-label="Close">×</button>
       <p class="eyebrow">Large Orders</p>
       <h2>Office &amp; Group Orders</h2>
-      <p class="muted">Requested date and time are optional. Tip: use Duplicate when several people want the same burrito.</p>
+      <p class="muted">Tip: use Duplicate when several people want the same burrito.</p>
       <div class="form-grid">
         <label class="field-label">Company / Group Name<input id="cateringCompany" type="text" /></label>
         <label class="field-label">Contact Name<input id="cateringContact" type="text" /></label>
         <label class="field-label">Phone Number<input id="cateringPhone" type="tel" inputmode="numeric" placeholder="(915) 555-1234" /></label>
+        <label class="field-label">Email Address <span>(optional)</span>
+          <input id="cateringEmail" type="email" placeholder="you@example.com" />
+          <small class="field-hint">We'll only use this to send a copy of the group order.</small>
+        </label>
         <label class="field-label">Requested Date <span>(optional)</span><input id="cateringDate" type="date" /></label>
-        <label class="field-label">Requested Time <span>(optional)</span><input id="cateringTime" type="time" /></label>
       </div>
       <fieldset class="contact-preference">
         <legend>Preferred Contact</legend>
