@@ -1,3 +1,11 @@
+
+## RC7.4 — Required Email + Field Alignment
+
+### Changed
+- Email Address is now required for regular and Office & Group Orders.
+- Aligned Email Address cleanly with Phone Number in checkout layouts.
+- Updated validation copy for required customer receipt emails.
+
 # Mama Lu's Ordering Platform - Changelog
 
 ## v1.0.0 - Sunrise
@@ -80,8 +88,8 @@
 ## RC7.3 - Receipt Email + Group Time Cleanup
 
 ### Added
-- Optional Email Address field to regular checkout for customer receipt copies.
-- Optional Email Address field to Office & Group Orders for organizer receipt copies.
+- Required Email Address field to regular checkout for customer receipt copies.
+- Required Email Address field to Office & Group Orders for organizer receipt copies.
 - Customer receipt email delivery when an email address is entered.
 
 ### Changed

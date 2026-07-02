@@ -62,15 +62,15 @@
         </div>
         <form id="customerForm" novalidate>
           <div class="form-grid">
-            <label class="field-label">Full Name
+            <label class="field-label field-wide">Full Name
               <input id="customerName" type="text" autocomplete="name" placeholder="Full Name" required />
             </label>
             <label class="field-label">Phone Number
               <input id="customerPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(915) 555-1234" required />
             </label>
-            <label class="field-label">Email Address <span>(optional)</span>
-              <input id="customerEmail" type="email" autocomplete="email" placeholder="you@example.com" />
-              <small class="field-hint">We'll only use this to send a copy of your order.</small>
+            <label class="field-label">Email Address
+              <input id="customerEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+              <small class="receipt-hint">We'll only use this to send a copy of your order.</small>
             </label>
           </div>
 
@@ -201,9 +201,9 @@
         <label class="field-label">Company / Group Name<input id="cateringCompany" type="text" /></label>
         <label class="field-label">Contact Name<input id="cateringContact" type="text" /></label>
         <label class="field-label">Phone Number<input id="cateringPhone" type="tel" inputmode="numeric" placeholder="(915) 555-1234" /></label>
-        <label class="field-label">Email Address <span>(optional)</span>
-          <input id="cateringEmail" type="email" placeholder="you@example.com" />
-          <small class="field-hint">We'll only use this to send a copy of the group order.</small>
+        <label class="field-label">Email Address
+          <input id="cateringEmail" type="email" placeholder="you@example.com" required />
+          <small class="receipt-hint">We'll only use this to send a copy of the group order.</small>
         </label>
         <label class="field-label">Requested Date <span>(optional)</span><input id="cateringDate" type="date" /></label>
       </div>

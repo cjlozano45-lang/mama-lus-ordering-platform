@@ -121,8 +121,8 @@ Test the homepage on mobile first. Confirm that the logo is the focal point, bot
 ## RC7.3 - Receipt Email + Group Time Cleanup
 
 ### Added
-- Optional Email Address field to regular checkout for customer receipt copies.
-- Optional Email Address field to Office & Group Orders for organizer receipt copies.
+- Required Email Address field to regular checkout for customer receipt copies.
+- Required Email Address field to Office & Group Orders for organizer receipt copies.
 - Customer receipt email delivery when an email address is entered.
 
 ### Changed

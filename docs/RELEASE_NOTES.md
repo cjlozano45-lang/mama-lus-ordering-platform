@@ -1,3 +1,10 @@
+
+## RC7.4 — Required Email + Field Alignment
+
+- Email Address is now required so customers receive a receipt copy.
+- Regular checkout aligns Email Address cleanly with Phone Number.
+- Office & Group Orders require an organizer email for the receipt copy.
+
 # Release Notes
 
 ## Version 1.2.2
@@ -140,8 +147,8 @@
 ## RC7.3 - Receipt Email + Group Time Cleanup
 
 ### Added
-- Optional Email Address field to regular checkout for customer receipt copies.
-- Optional Email Address field to Office & Group Orders for organizer receipt copies.
+- Required Email Address field to regular checkout for customer receipt copies.
+- Required Email Address field to Office & Group Orders for organizer receipt copies.
 - Customer receipt email delivery when an email address is entered.
 
 ### Changed

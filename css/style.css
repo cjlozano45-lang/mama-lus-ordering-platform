@@ -71,6 +71,7 @@ p { line-height: 1.6; }
 .card-footer strong { color: var(--navy); font-size: 1.45rem; font-family: var(--font-heading); }
 .catering-section, .checkout-section { padding: 32px; margin: 52px 0; }
 .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.field-wide { grid-column: 1 / -1; }
 .field-label { display: grid; gap: 8px; font-weight: 800; color: var(--navy); margin: 16px 0; }
 .field-label span { font-weight: 600; color: var(--muted); }
 input, textarea { width: 100%; border: 1px solid rgba(4,30,66,.18); border-radius: 16px; padding: 14px 15px; background: white; color: var(--ink); outline: none; }
@@ -514,4 +515,14 @@ select:focus { border-color: var(--navy); box-shadow: 0 0 0 4px rgba(4,30,66,.1)
   .hero-identity h2 { font-size: 2.1rem; }
   .sticky-cart-bar { grid-template-columns: 1fr auto; }
   .sticky-cart-bar span:last-child { display: none; }
+}
+
+
+/* RC7.4 required receipt email polish */
+.receipt-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: .86rem;
 }

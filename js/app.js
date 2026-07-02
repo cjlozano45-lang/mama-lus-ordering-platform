@@ -539,7 +539,8 @@ function handleReviewOrder(event) {
   if (!state.cart.length) return showStatus("Please add at least one item before reviewing your order.");
   if (!els.customerName.value.trim()) return showStatus("Please enter your name.");
   if (!isValidPhone(els.customerPhone.value)) return showStatus("Please enter a valid phone number in this format: (915) 555-1234.");
-  if (els.customerEmail.value.trim() && !isValidEmail(els.customerEmail.value.trim())) return showStatus("Please enter a valid email address or leave the email field blank.");
+  if (!els.customerEmail.value.trim()) return showStatus("Please enter your email address so we can send you a copy of your order.");
+  if (!isValidEmail(els.customerEmail.value.trim())) return showStatus("Please enter a valid email address.");
 
   const order = buildOrderPayload();
   state.pendingReviewType = "regular";
@@ -616,7 +617,8 @@ function reviewCateringOrder() {
   if (!company || !contact || !isValidPhone(phone) || !state.cateringItems.length) {
     return showStatus("Please complete company name, contact name, valid phone number, and add at least one person order.");
   }
-  if (email && !isValidEmail(email)) return showStatus("Please enter a valid email address or leave the email field blank.");
+  if (!email) return showStatus("Please enter an email address so we can send a copy of the group order.");
+  if (!isValidEmail(email)) return showStatus("Please enter a valid email address.");
 
   const order = buildCateringPayload();
   state.pendingReviewType = "catering";
