@@ -779,3 +779,20 @@ input:focus, textarea:focus, select:focus {
     min-height: 58px;
   }
 }
+
+/* RC7.18 stabilization: group builder button and beans rules */
+#addGroupPersonButton {
+  display: inline-flex !important;
+  visibility: visible !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  white-space: nowrap;
+}
+.group-options-row {
+  align-items: stretch;
+}
+.group-options-row .group-extra-option.hidden + #addGroupPersonButton,
+.group-options-row #addGroupPersonButton {
+  align-self: center;
+}
