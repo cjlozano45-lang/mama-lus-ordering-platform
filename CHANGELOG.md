@@ -1,3 +1,12 @@
+# Mama Lu's Ordering Platform - Changelog
+
+## RC7.14 — GitHub Pages Test Package
+
+### Changed
+- Repackaged the current navy/gold theme build for GitHub Pages testing.
+- Preserved the current ordering flow, Office & Group Orders, sticky cart, and two-template EmailJS setup.
+- Added this package as the recommended upload target for GitHub Pages testing.
+
 
 ## RC7.4 — Required Email + Field Alignment
 
@@ -138,3 +147,9 @@
 - Shows the exact EmailJS send failure in the review window.
 - Identifies whether the kitchen or customer receipt template failed.
 - Uses strict sending so receipt failures are visible during testing.
+
+
+## RC7.13 Theme Match
+- Applied deep navy and gold visual theme based on the original local project.
+- Preserved current RC ordering flow and EmailJS two-template setup.
+- Kept modern homepage/mobile experience while matching Mama Lu's navy/gold brand direction.

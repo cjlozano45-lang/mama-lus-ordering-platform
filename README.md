@@ -1,3 +1,14 @@
+# Mama Lu's Ordering Platform — RC7.14
+
+This package is intended to be tested by uploading the extracted contents to GitHub Pages.
+
+## GitHub Pages test steps
+1. Extract this ZIP.
+2. Open the extracted folder.
+3. Upload the files inside the folder to your GitHub repository.
+4. Commit the changes.
+5. Wait 1–2 minutes, then test your GitHub Pages URL on your phone.
+
 # Mama Lu's Ordering Platform
 
 Version: **v1.0.0 - Sunrise**
@@ -157,3 +168,9 @@ The customer receipt is sent to the email entered during checkout.
 - Shows the exact EmailJS send failure in the review window.
 - Identifies whether the kitchen or customer receipt template failed.
 - Uses strict sending so receipt failures are visible during testing.
+
+
+## RC7.13 Theme Match
+- Applied deep navy and gold visual theme based on the original local project.
+- Preserved current RC ordering flow and EmailJS two-template setup.
+- Kept modern homepage/mobile experience while matching Mama Lu's navy/gold brand direction.
