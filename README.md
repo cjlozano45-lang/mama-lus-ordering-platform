@@ -135,5 +135,25 @@ Test the homepage on mobile first. Confirm that the logo is the focal point, bot
 
 
 
-## RC7.6 Notes
+## RC7.7 Notes
 Office & Group Orders no longer show Requested Date. Email is required and aligned with Phone Number. The group review button now routes correctly to the review screen.
+
+
+### EmailJS Receipt Reminder
+For customer receipts, the EmailJS template **To Email** field must be set to `{{to_email}}`. If it is hardcoded to the kitchen email address, both the kitchen order and the customer receipt will go to the kitchen inbox.
+
+
+## RC7.9 EmailJS Templates
+
+This build uses two separate EmailJS templates:
+
+- Kitchen Order: `template_k6q2ezg` — should send to `c.j.lozano88@gmail.com`.
+- Customer Receipt: `template_fwtpv5n` — should use `{{to_email}}` in the EmailJS **To Email** field.
+
+The customer receipt is sent to the email entered during checkout.
+
+
+## RC7.12 Email Debug
+- Shows the exact EmailJS send failure in the review window.
+- Identifies whether the kitchen or customer receipt template failed.
+- Uses strict sending so receipt failures are visible during testing.

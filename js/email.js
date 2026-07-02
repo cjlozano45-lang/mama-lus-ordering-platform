@@ -9,6 +9,28 @@
     4. Keep the EmailJS browser script in index.html.
 */
 
+function describeEmailError(error) {
+  if (!error) return "Unknown EmailJS error.";
+  const parts = [];
+  if (error.status) parts.push(`status ${error.status}`);
+  if (error.text) parts.push(error.text);
+  if (error.message && !parts.includes(error.message)) parts.push(error.message);
+  try {
+    const raw = JSON.stringify(error);
+    if (raw && raw !== "{}") parts.push(raw);
+  } catch (_) {}
+  return parts.join(" | ") || String(error);
+}
+
+function createEmailSendError(label, templateId, error) {
+  const detail = describeEmailError(error);
+  const wrapped = new Error(`${label} failed using ${templateId}: ${detail}`);
+  wrapped.emailLabel = label;
+  wrapped.templateId = templateId;
+  wrapped.originalError = error;
+  return wrapped;
+}
+
 function divider() {
   return "━━━━━━━━━━━━━━━━━━━━";
 }
@@ -160,13 +182,22 @@ async function sendCustomerReceiptEmail(order, orderType) {
   const contact = orderType === "catering" ? order.contactPreference : order.customer.contactPreference;
 
   const params = {
+    // EmailJS template must use {{to_email}} in the To Email field.
+    // Extra aliases are included for compatibility while testing templates.
     to_email: recipient,
+    email: recipient,
+    user_email: recipient,
+    customer_email: recipient,
+    recipient_email: recipient,
     order_number: order.orderNumber,
     order_subject: `Mama Lu's Receipt - ${order.orderNumber}`,
     order_type: orderType === "catering" ? "Office & Group Order Receipt" : "Order Receipt",
     customer_name: name,
+    name: name,
     customer_phone: phone,
+    phone: phone,
     preferred_contact: contact,
+    contact_method: contact,
     order_total: formatMoney(order.totals.total),
     order_body: body,
     order_message: body,
@@ -176,10 +207,10 @@ async function sendCustomerReceiptEmail(order, orderType) {
     reply_to: SETTINGS.orderEmail
   };
 
-  return deliverEmail(params, "Customer receipt email preview");
+  return deliverEmail(params, "Customer receipt email", SETTINGS.emailJs.receiptTemplateId);
 }
 
-async function deliverEmail(params, previewLabel) {
+async function deliverEmail(params, previewLabel, templateId) {
   if (!SETTINGS.emailJs || !SETTINGS.emailJs.enabled) {
     console.log(`EmailJS disabled. ${previewLabel}:`, params.order_body);
     return { ok: true, skipped: true };
@@ -189,15 +220,25 @@ async function deliverEmail(params, previewLabel) {
     throw new Error("EmailJS library is not loaded.");
   }
 
-  const result = await window.emailjs.send(
-    SETTINGS.emailJs.serviceId,
-    SETTINGS.emailJs.templateId,
-    params,
-    { publicKey: SETTINGS.emailJs.publicKey }
-  );
+  const selectedTemplateId = templateId || SETTINGS.emailJs.kitchenTemplateId || SETTINGS.emailJs.templateId;
+  if (!selectedTemplateId) {
+    throw new Error("EmailJS template ID is missing.");
+  }
 
-  console.log("EmailJS send result:", result);
-  return { ok: true, result };
+  try {
+    const result = await window.emailjs.send(
+      SETTINGS.emailJs.serviceId,
+      selectedTemplateId,
+      params,
+      { publicKey: SETTINGS.emailJs.publicKey }
+    );
+
+    console.log(`${previewLabel} send result:`, result);
+    return { ok: true, result, label: previewLabel, templateId: selectedTemplateId };
+  } catch (error) {
+    console.error(`${previewLabel} failed:`, error);
+    throw createEmailSendError(previewLabel, selectedTemplateId, error);
+  }
 }
 
 async function sendOrderEmail(order) {
@@ -208,8 +249,13 @@ async function sendOrderEmail(order) {
     order_subject: `Mama Lu's Order - ${order.orderNumber}`,
     order_type: "Regular Order",
     customer_name: order.customer.name,
+    name: order.customer.name,
+    customer_email: order.customer.email,
+    email: order.customer.email,
     customer_phone: order.customer.phone,
+    phone: order.customer.phone,
     preferred_contact: order.customer.contactPreference,
+    contact_method: order.customer.contactPreference,
     order_total: formatMoney(order.totals.total),
     order_body: body,
     order_message: body,
@@ -219,8 +265,9 @@ async function sendOrderEmail(order) {
     reply_to: order.customer.email || SETTINGS.orderEmail
   };
 
-  await deliverEmail(params, "Regular order email preview");
-  return sendCustomerReceiptEmail(order, "regular");
+  const kitchenResult = await deliverEmail(params, "Kitchen regular order email", SETTINGS.emailJs.kitchenTemplateId);
+  const receiptResult = await sendCustomerReceiptEmail(order, "regular");
+  return { ok: true, kitchenResult, receiptResult };
 }
 
 async function sendCateringEmail(order) {
@@ -231,8 +278,13 @@ async function sendCateringEmail(order) {
     order_subject: `Mama Lu's Office & Group Order - ${order.orderNumber}`,
     order_type: "Office & Group Order",
     customer_name: order.contactName,
+    name: order.contactName,
+    customer_email: order.email,
+    email: order.email,
     customer_phone: order.phone,
+    phone: order.phone,
     preferred_contact: order.contactPreference,
+    contact_method: order.contactPreference,
     order_total: formatMoney(order.totals.total),
     order_body: body,
     order_message: body,
@@ -242,6 +294,7 @@ async function sendCateringEmail(order) {
     reply_to: order.email || SETTINGS.orderEmail
   };
 
-  await deliverEmail(params, "Office & Group order email preview");
-  return sendCustomerReceiptEmail(order, "catering");
+  const kitchenResult = await deliverEmail(params, "Kitchen Office & Group order email", SETTINGS.emailJs.kitchenTemplateId);
+  const receiptResult = await sendCustomerReceiptEmail(order, "catering");
+  return { ok: true, kitchenResult, receiptResult };
 }

@@ -146,3 +146,16 @@ The EmailJS subject should remain:
 ```text
 {{order_subject}}
 ```
+
+
+## EmailJS Template Setup
+
+Kitchen template: `template_k6q2ezg`
+- Use for kitchen order tickets.
+- Keep the EmailJS To Email set to `c.j.lozano88@gmail.com`.
+
+Customer receipt template: `template_fwtpv5n`
+- Use for customer copies/receipts.
+- Set EmailJS To Email to `{{to_email}}`.
+
+The website sends both emails when an order is submitted.

@@ -36,7 +36,8 @@ const SETTINGS = {
     enabled: true,
     publicKey: "M7PEaRaBTRv2Q-1Ss",
     serviceId: "service_t2kskwk",
-    templateId: "template_hx8fhio"
+    kitchenTemplateId: "template_k6q2ezg",
+    receiptTemplateId: "template_fwtpv5n"
   },
 
   testMode: false,

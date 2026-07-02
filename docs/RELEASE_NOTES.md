@@ -173,3 +173,17 @@
 - Removed stale optional Email label.
 - Added missing email validation helper so required email works consistently.
 - Fixed Review Office & Group Order flow when an email address is entered.
+
+## RC7.7 - Stabilization
+- Added provided Mama Lu's logo asset.
+- Fixed Enter key behavior in Office & Group Orders.
+- Stabilized group order review validation.
+- Removed automatic cart opening after customized add-to-order.
+
+
+## RC7.8 - Stabilization Patch
+
+- Replaced site logo with the corrected logo file.
+- Fixed Edit Burrito so it does not automatically check Add Beans.
+- Added additional customer receipt recipient aliases for EmailJS template compatibility.
+- Note: EmailJS template To Email must be set to `{{to_email}}` for customer receipts to go to the customer-entered email.

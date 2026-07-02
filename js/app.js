@@ -114,6 +114,12 @@ function bindEvents() {
   els.customerPhone.addEventListener("focus", () => ensureAreaCode(els.customerPhone));
   els.cateringPhone.addEventListener("focus", () => ensureAreaCode(els.cateringPhone));
   els.groupPersonName.addEventListener("input", clearGroupNameRequired);
+  els.groupPersonName.addEventListener("keydown", handleGroupNameKeydown);
+  if (els.cateringModal) {
+    els.cateringModal.addEventListener("keydown", preventCateringEnterSubmit);
+    const cateringForm = els.cateringModal.querySelector("form");
+    if (cateringForm) cateringForm.addEventListener("submit", (event) => event.preventDefault());
+  }
   els.customerForm.addEventListener("submit", handleReviewOrder);
   els.submitOrderButton.addEventListener("click", submitReviewedOrder);
   els.newOrderButton.addEventListener("click", resetOrder);
@@ -370,7 +376,7 @@ function renderGroupOrderList() {
       state.editingGroupUid = item.uid;
       els.groupPersonName.value = item.personName;
       els.groupBurritoSelect.value = item.id;
-      els.groupBeansCheckbox.checked = item.extras.some(extra => extra.id === "beans");
+      els.groupBeansCheckbox.checked = false;
       renderGroupOrderList();
       els.groupBurritoSelect.scrollIntoView({ behavior: "smooth", block: "center" });
       setTimeout(() => {
@@ -380,6 +386,22 @@ function renderGroupOrderList() {
       showStatus("Choose a new burrito, then tap Save Person.");
     });
   });
+}
+
+
+function handleGroupNameKeydown(event) {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  if (els.groupBurritoSelect) els.groupBurritoSelect.focus();
+}
+
+function preventCateringEnterSubmit(event) {
+  if (event.key !== "Enter") return;
+  const tag = event.target.tagName;
+  const type = event.target.getAttribute("type");
+  if (tag === "TEXTAREA") return;
+  if (tag === "BUTTON" || type === "button" || type === "submit") return;
+  event.preventDefault();
 }
 
 function markGroupNameRequired() {
@@ -471,9 +493,10 @@ function addSelectedToCart() {
   saveCart();
   renderCart();
   els.customizeModal.close();
-  showStatus(`✓ ${state.selectedItem.name} added to your order.`);
-  openCart();
-  if (getBurritoCount() >= SETTINGS.cateringThreshold) showStatus("Large order detected. For 25 burritos or more, the Catering Form may be easier.");
+  const addedName = state.selectedItem.name;
+  state.selectedItem = null;
+  showStatus(`✓ ${addedName} added to your order.`);
+  if (getBurritoCount() >= SETTINGS.cateringThreshold) showStatus("Large order detected. For 25 burritos or more, Office & Group Orders may be easier.");
 }
 
 function renderCart() {
@@ -534,23 +557,47 @@ function clearCart() {
   showStatus("Your breakfast order has been cleared.");
 }
 
+
+function clearReviewError() {
+  if (!els.reviewError) return;
+  els.reviewError.textContent = "";
+  els.reviewError.classList.add("hidden");
+}
+
+function showReviewError(message) {
+  if (!els.reviewError) return showStatus(message);
+  els.reviewError.textContent = message;
+  els.reviewError.classList.remove("hidden");
+}
+
+function focusMissingField(field, message) {
+  if (field) {
+    field.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => field.focus({ preventScroll: true }), 250);
+  }
+  showStatus(message);
+}
+
 function handleReviewOrder(event) {
   event.preventDefault();
-  if (!state.cart.length) return showStatus("Please add at least one item before reviewing your order.");
-  if (!els.customerName.value.trim()) return showStatus("Please enter your name.");
-  if (!isValidPhone(els.customerPhone.value)) return showStatus("Please enter a valid phone number in this format: (915) 555-1234.");
-  if (!els.customerEmail.value.trim()) return showStatus("Please enter your email address so we can send you a copy of your order.");
-  if (!isValidEmail(els.customerEmail.value.trim())) return showStatus("Please enter a valid email address.");
+  clearReviewError();
+  if (!state.cart.length) return focusMissingField(els.menuGrid, "Please add at least one item before reviewing your order.");
+  if (!els.customerName.value.trim()) return focusMissingField(els.customerName, "Please enter your name.");
+  if (!isValidPhone(els.customerPhone.value)) return focusMissingField(els.customerPhone, "Please enter a valid phone number in this format: (915) 555-1234.");
+  if (!els.customerEmail.value.trim()) return focusMissingField(els.customerEmail, "Please enter your email address so we can send you a copy of your order.");
+  if (!isValidEmail(els.customerEmail.value.trim())) return focusMissingField(els.customerEmail, "Please enter a valid email address.");
 
   const order = buildOrderPayload();
   state.pendingReviewType = "regular";
   state.pendingReviewOrder = order;
   els.reviewContent.innerHTML = renderReview(order);
   els.submitOrderButton.textContent = "Send Order";
+  clearReviewError();
   els.reviewModal.showModal();
 }
 
 async function submitReviewedOrder() {
+  clearReviewError();
   const order = state.pendingReviewOrder || buildOrderPayload();
   const type = state.pendingReviewType || "regular";
   state.lastSubmittedOrder = order;
@@ -577,7 +624,9 @@ async function submitReviewedOrder() {
     els.confirmationModal.showModal();
   } catch (error) {
     console.error(error);
-    showStatus("We couldn't send your order right now. Please try again, or call us if the problem continues.");
+    const detail = error && error.message ? error.message : String(error);
+    showReviewError(`EmailJS debug: ${detail}`);
+    showStatus("Order was not sent. See the EmailJS debug message in the review window.");
   } finally {
     els.submitOrderButton.disabled = false;
     els.submitOrderButton.textContent = "Send Order";
@@ -603,6 +652,7 @@ function resetCateringBuilder() {
 function resetOrder() {
   els.confirmationModal.close();
   els.customerForm.reset();
+  initializePhoneField(els.customerPhone);
   document.querySelector('input[name="contactPreference"][value="Text"]').checked = true;
   state.pendingReviewOrder = null;
   state.pendingReviewType = "regular";
@@ -610,22 +660,25 @@ function resetOrder() {
 }
 
 function reviewCateringOrder() {
+  clearReviewError();
   const company = document.getElementById("cateringCompany").value.trim();
   const contact = document.getElementById("cateringContact").value.trim();
   const phone = document.getElementById("cateringPhone").value.trim();
   const email = document.getElementById("cateringEmail").value.trim();
-  if (!contact || !isValidPhone(phone) || !state.cateringItems.length) {
-    return showStatus("Please enter a contact name, valid phone number, and add at least one person order.");
-  }
-  if (!email) return showStatus("Please enter an email address so we can send a copy of the group order.");
-  if (!isValidEmail(email)) return showStatus("Please enter a valid email address.");
+
+  if (!contact) return focusMissingField(document.getElementById("cateringContact"), "Please enter a contact name for the group order.");
+  if (!isValidPhone(phone)) return focusMissingField(document.getElementById("cateringPhone"), "Please enter a valid phone number in this format: (915) 555-1234.");
+  if (!email) return focusMissingField(document.getElementById("cateringEmail"), "Please enter an email address so we can send a copy of the group order.");
+  if (!isValidEmail(email)) return focusMissingField(document.getElementById("cateringEmail"), "Please enter a valid email address.");
+  if (!state.cateringItems.length) return focusMissingField(els.groupPersonName, "Please add at least one person's order before reviewing.");
 
   const order = buildCateringPayload();
   state.pendingReviewType = "catering";
   state.pendingReviewOrder = order;
   els.reviewContent.innerHTML = renderCateringReview(order);
   els.submitOrderButton.textContent = "Send Group Order";
-  els.cateringModal.close();
+  clearReviewError();
+  if (els.cateringModal.open) els.cateringModal.close();
   els.reviewModal.showModal();
 }
 

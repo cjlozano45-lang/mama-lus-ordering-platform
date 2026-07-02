@@ -107,3 +107,34 @@
 - Removed stale optional Email label.
 - Added missing email validation helper so required email works consistently.
 - Fixed Review Office & Group Order flow when an email address is entered.
+
+## RC7.7 - Stabilization
+- Added provided Mama Lu's logo asset.
+- Prevented Enter key from closing Office & Group Orders while typing a name.
+- Fixed group order review validation flow with required email.
+- Customize > Add to Order no longer opens the cart automatically.
+- Customers stay on the menu and can use the sticky cart bar when ready to review.
+
+
+## RC7.8 - Stabilization Patch
+
+- Replaced site logo with the corrected logo file.
+- Fixed Edit Burrito so it does not automatically check Add Beans.
+- Added additional customer receipt recipient aliases for EmailJS template compatibility.
+- Note: EmailJS template To Email must be set to `{{to_email}}` for customer receipts to go to the customer-entered email.
+
+## RC7.1 Redo - Stabilized Email Flow
+
+### Fixed
+- Rebuilt from the RC7.1 mobile/homepage experience while preserving the two-template EmailJS setup.
+- Order send failures now display inside the review window instead of only behind the modal.
+- Required-field validation scrolls and focuses the missing field.
+- Added compatibility fields for EmailJS templates using `{{name}}`, `{{email}}`, `{{to_email}}`, and related aliases.
+- Customer receipt failures no longer create duplicate kitchen orders on retry after the kitchen order has already been sent.
+- Updated logo asset to the corrected logo.
+
+
+## RC7.12 Email Debug
+- Shows the exact EmailJS send failure in the review window.
+- Identifies whether the kitchen or customer receipt template failed.
+- Uses strict sending so receipt failures are visible during testing.
