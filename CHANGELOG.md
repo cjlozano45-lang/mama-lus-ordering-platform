@@ -1,3 +1,10 @@
+# Changelog
+
+## RC7.16 - Theme Toggle Preview
+- Added a testing-only Gold/Silver theme toggle.
+- Preserved current ordering and EmailJS behavior.
+- Default theme remains Gold.
+
 # Mama Lu's Ordering Platform - Changelog
 
 ## RC7.14 — GitHub Pages Test Package

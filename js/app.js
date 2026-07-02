@@ -15,6 +15,7 @@ const els = {};
 
 document.addEventListener("DOMContentLoaded", () => {
   cacheElements();
+  initializeThemeToggle();
   hydrateSettings();
   renderMenu();
   renderBeverages();
@@ -80,8 +81,25 @@ function cacheElements() {
     groupOrderStats: document.getElementById("groupOrderStats"),
     addGroupPersonButton: document.getElementById("addGroupPersonButton"),
     groupOrderList: document.getElementById("groupOrderList"),
-    submitCateringButton: document.getElementById("submitCateringButton")
+    submitCateringButton: document.getElementById("submitCateringButton"),
+    goldThemeButton: document.getElementById("goldThemeButton"),
+    silverThemeButton: document.getElementById("silverThemeButton")
   });
+}
+
+
+function initializeThemeToggle() {
+  const savedTheme = localStorage.getItem("ml_preview_theme") || "gold";
+  setPreviewTheme(savedTheme, { silent: true });
+}
+
+function setPreviewTheme(theme, options = {}) {
+  const cleanTheme = theme === "silver" ? "silver" : "gold";
+  document.body.dataset.theme = cleanTheme;
+  localStorage.setItem("ml_preview_theme", cleanTheme);
+  if (els.goldThemeButton) els.goldThemeButton.classList.toggle("active", cleanTheme === "gold");
+  if (els.silverThemeButton) els.silverThemeButton.classList.toggle("active", cleanTheme === "silver");
+  if (!options.silent) showStatus(`${cleanTheme === "silver" ? "Silver" : "Gold"} theme preview enabled.`);
 }
 
 function hydrateSettings() {
@@ -98,6 +116,8 @@ function hydrateSettings() {
 }
 
 function bindEvents() {
+  if (els.goldThemeButton) els.goldThemeButton.addEventListener("click", () => setPreviewTheme("gold"));
+  if (els.silverThemeButton) els.silverThemeButton.addEventListener("click", () => setPreviewTheme("silver"));
   els.cartFab.addEventListener("click", openCart);
   if (els.stickyCartBar) els.stickyCartBar.addEventListener("click", openCart);
   els.closeCart.addEventListener("click", closeCart);

@@ -174,3 +174,7 @@ The customer receipt is sent to the email entered during checkout.
 - Applied deep navy and gold visual theme based on the original local project.
 - Preserved current RC ordering flow and EmailJS two-template setup.
 - Kept modern homepage/mobile experience while matching Mama Lu's navy/gold brand direction.
+
+
+## RC7.16 Theme Toggle
+Use the small Theme selector in the upper-right corner to preview Gold or Silver. The choice is saved in the browser for testing only.
