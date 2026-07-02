@@ -158,7 +158,7 @@ For customer receipts, the EmailJS template **To Email** field must be set to `{
 
 This build uses two separate EmailJS templates:
 
-- Kitchen Order: `template_k6q2ezg` — should send to `c.j.lozano88@gmail.com`.
+- Kitchen Order: `template_k6q2ezg` — should send to `mamalusorders@gmail.com`.
 - Customer Receipt: `template_fwtpv5n` — should use `{{to_email}}` in the EmailJS **To Email** field.
 
 The customer receipt is sent to the email entered during checkout.
@@ -174,7 +174,3 @@ The customer receipt is sent to the email entered during checkout.
 - Applied deep navy and gold visual theme based on the original local project.
 - Preserved current RC ordering flow and EmailJS two-template setup.
 - Kept modern homepage/mobile experience while matching Mama Lu's navy/gold brand direction.
-
-
-## RC7.16 Theme Toggle
-Use the small Theme selector in the upper-right corner to preview Gold or Silver. The choice is saved in the browser for testing only.

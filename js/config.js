@@ -4,7 +4,7 @@ const SETTINGS = {
   phone: "(915) 642-7291",
   phoneHref: "+19156427291",
   defaultAreaCode: "915",
-  orderEmail: "c.j.lozano88@gmail.com",
+  orderEmail: "mamalusorders@gmail.com",
 
   acceptingOrders: true,
   taxEnabled: false,

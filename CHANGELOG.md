@@ -1,10 +1,3 @@
-# Changelog
-
-## RC7.16 - Theme Toggle Preview
-- Added a testing-only Gold/Silver theme toggle.
-- Preserved current ordering and EmailJS behavior.
-- Default theme remains Gold.
-
 # Mama Lu's Ordering Platform - Changelog
 
 ## RC7.14 — GitHub Pages Test Package
@@ -160,3 +153,16 @@
 - Applied deep navy and gold visual theme based on the original local project.
 - Preserved current RC ordering flow and EmailJS two-template setup.
 - Kept modern homepage/mobile experience while matching Mama Lu's navy/gold brand direction.
+
+
+## RC7.17 - Business Email Test
+
+### Changed
+- Updated kitchen/business order email recipient to mamalusorders@gmail.com.
+- Kept EmailJS service and template IDs unchanged unless you provide a new Service ID.
+- Preserved the navy/gold theme and current ordering flow.
+
+### Test
+- Send one regular order and one Office & Group Order.
+- Confirm kitchen tickets arrive at mamalusorders@gmail.com.
+- Confirm customer receipts arrive at the customer email entered during checkout.

@@ -132,7 +132,7 @@ Version RC7.3 adds optional customer receipt emails. To make this work in EmailJ
 ```
 
 The website will send:
-- Kitchen order email to `c.j.lozano88@gmail.com`
+- Kitchen order email to `mamalusorders@gmail.com`
 - Optional receipt email to the customer or group organizer if they entered an email address
 
 The EmailJS template body should remain:
@@ -152,7 +152,7 @@ The EmailJS subject should remain:
 
 Kitchen template: `template_k6q2ezg`
 - Use for kitchen order tickets.
-- Keep the EmailJS To Email set to `c.j.lozano88@gmail.com`.
+- Keep the EmailJS To Email set to `mamalusorders@gmail.com`.
 
 Customer receipt template: `template_fwtpv5n`
 - Use for customer copies/receipts.
