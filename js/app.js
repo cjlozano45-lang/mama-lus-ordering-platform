@@ -7,6 +7,7 @@ const state = {
   lastSubmittedOrder: null,
   pendingReviewOrder: null,
   pendingReviewType: "regular",
+  editingGroupUid: null,
   cateringItems: loadCateringItems()
 };
 
@@ -32,6 +33,9 @@ function cacheElements() {
     callButton: document.getElementById("callButton"),
     textButton: document.getElementById("textButton"),
     statusMessage: document.getElementById("statusMessage"),
+    stickyCartBar: document.getElementById("stickyCartBar"),
+    stickyCartSummary: document.getElementById("stickyCartSummary"),
+    stickyCartTotal: document.getElementById("stickyCartTotal"),
     cartFab: document.getElementById("cartFab"),
     cartFabCount: document.getElementById("cartFabCount"),
     cartDrawer: document.getElementById("cartDrawer"),
@@ -64,6 +68,7 @@ function cacheElements() {
     confirmationOrderNumber: document.getElementById("confirmationOrderNumber"),
     newOrderButton: document.getElementById("newOrderButton"),
     openCatering: document.getElementById("openCatering"),
+    openCateringHero: document.getElementById("openCateringHero"),
     cateringModal: document.getElementById("cateringModal"),
     cateringPhone: document.getElementById("cateringPhone"),
     groupPersonName: document.getElementById("groupPersonName"),
@@ -84,13 +89,15 @@ function hydrateSettings() {
   els.textButton.href = `sms:${SETTINGS.phoneHref}`;
   toggle(els.callButton, SETTINGS.callButtonEnabled);
   toggle(els.textButton, SETTINGS.textButtonEnabled);
-  toggle(els.cateringSection, SETTINGS.cateringEnabled);
+  toggle(els.cateringSection, false);
+  toggle(els.openCateringHero, SETTINGS.cateringEnabled);
   if (!SETTINGS.acceptingOrders) showStatus("Online ordering is currently unavailable. Please check back later.");
   if (SETTINGS.debugMode) console.log("Project Sunrise settings", SETTINGS);
 }
 
 function bindEvents() {
   els.cartFab.addEventListener("click", openCart);
+  if (els.stickyCartBar) els.stickyCartBar.addEventListener("click", openCart);
   els.closeCart.addEventListener("click", closeCart);
   els.drawerBackdrop.addEventListener("click", closeCart);
   els.clearCartButton.addEventListener("click", clearCart);
@@ -104,7 +111,8 @@ function bindEvents() {
   els.customerForm.addEventListener("submit", handleReviewOrder);
   els.submitOrderButton.addEventListener("click", submitReviewedOrder);
   els.newOrderButton.addEventListener("click", resetOrder);
-  els.openCatering.addEventListener("click", () => els.cateringModal.showModal());
+  if (els.openCatering) els.openCatering.addEventListener("click", () => els.cateringModal.showModal());
+  if (els.openCateringHero) els.openCateringHero.addEventListener("click", () => els.cateringModal.showModal());
   els.addGroupPersonButton.addEventListener("click", addGroupPersonOrder);
   els.submitCateringButton.addEventListener("click", reviewCateringOrder);
 }
@@ -131,20 +139,42 @@ function renderMenu() {
           <h3>${item.name}</h3>
           <p>${item.description}</p>
         </div>
-        <div class="card-footer">
+        <div class="card-footer menu-card-actions">
           <strong>${formatMenuPrice(item.price)}</strong>
-          <span class="button button-small ${item.soldOut ? "button-disabled" : "button-secondary"}" aria-hidden="true">${item.soldOut ? "Sold Out" : "Customize"}</span>
+          ${item.soldOut ? `<span class="button button-small button-disabled" aria-hidden="true">Sold Out</span>` : `
+            <div class="menu-action-buttons">
+              <button class="button button-small button-primary quick-add-action" type="button" data-quick-add="${item.id}" aria-label="Quick add ${item.name}">Quick Add</button>
+              <button class="button button-small button-secondary customize-action" type="button" data-customize-item="${item.id}" aria-label="Customize ${item.name}">Customize</button>
+            </div>
+          `}
         </div>
       </article>
     `).join("");
 
   els.menuGrid.querySelectorAll(".menu-card:not(.sold-out)").forEach(card => {
-    card.addEventListener("click", () => openCustomizer(card.dataset.itemId));
+    card.addEventListener("click", (event) => {
+      if (event.target.closest("button")) return;
+      openCustomizer(card.dataset.itemId);
+    });
     card.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         openCustomizer(card.dataset.itemId);
       }
+    });
+  });
+
+  els.menuGrid.querySelectorAll("[data-customize-item]").forEach(button => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openCustomizer(button.dataset.customizeItem);
+    });
+  });
+
+  els.menuGrid.querySelectorAll("[data-quick-add]").forEach(button => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      quickAddItem(button.dataset.quickAdd);
     });
   });
 }
@@ -159,9 +189,13 @@ function renderBeverages() {
         <div class="food-icon" aria-hidden="true">🥤</div>
         <h3>${item.name}</h3>
         <p>${item.category}</p>
-        <div class="card-footer"><strong>${formatMoney(item.price)}</strong><button class="button button-small button-secondary" type="button">Add</button></div>
+        <div class="card-footer"><strong>${formatMoney(item.price)}</strong><button class="button button-small button-secondary" type="button" data-add-beverage="${item.id}">Add Drink</button></div>
       </article>
     `).join("");
+
+  els.beverageGrid.querySelectorAll("[data-add-beverage]").forEach(button => {
+    button.addEventListener("click", () => quickAddBeverage(button.dataset.addBeverage));
+  });
 }
 
 function renderGroupBurritoOptions() {
@@ -187,8 +221,8 @@ function addGroupPersonOrder() {
   if (!item) return showStatus("Please choose a burrito for this person.");
 
   const beans = els.groupBeansCheckbox.checked;
-  state.cateringItems.push({
-    uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+  const orderEntry = {
+    uid: state.editingGroupUid || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())),
     personName,
     type: "burrito",
     id: item.id,
@@ -196,7 +230,16 @@ function addGroupPersonOrder() {
     basePrice: item.price,
     extras: beans ? [{ id: "beans", name: "Beans", price: 0.25 }] : [],
     price: item.price + (beans ? 0.25 : 0)
-  });
+  };
+
+  if (state.editingGroupUid) {
+    state.cateringItems = state.cateringItems.map(existing => existing.uid === state.editingGroupUid ? orderEntry : existing);
+    state.editingGroupUid = null;
+    showStatus(`${personName}'s order was updated.`);
+  } else {
+    state.cateringItems.push(orderEntry);
+    showStatus(`${personName} added to the group order.`);
+  }
 
   saveCateringItems();
 
@@ -205,14 +248,13 @@ function addGroupPersonOrder() {
   els.groupBeansCheckbox.checked = false;
   renderGroupOrderList();
   els.groupPersonName.focus();
-  showStatus(`${personName} added to the group order.`);
 }
 
 function renderGroupOrderList() {
   if (!els.groupOrderList) return;
   const groupTotal = state.cateringItems.reduce((sum, item) => sum + item.price, 0);
   if (els.addGroupPersonButton) {
-    els.addGroupPersonButton.textContent = state.cateringItems.length ? "Add Another Person" : "Add Person";
+    els.addGroupPersonButton.textContent = state.editingGroupUid ? "Save Person" : (state.cateringItems.length ? "Add Another Person" : "Add Person");
   }
 
   if (els.groupOrderStats) {
@@ -234,14 +276,15 @@ function renderGroupOrderList() {
       <span>${state.cateringItems.length} burrito${state.cateringItems.length === 1 ? "" : "s"}</span>
     </div>
     ${state.cateringItems.map(item => `
-      <div class="group-order-item">
+      <div class="group-order-item ${state.editingGroupUid === item.uid ? "editing" : ""}">
         <div>
           <strong>✓ ${escapeHtml(item.personName)}</strong>
           <small>${escapeHtml(item.name)}${item.extras.length ? " + Beans" : ""}</small>
         </div>
         <strong>${formatMoney(item.price)}</strong>
         <div class="group-actions">
-          <button type="button" data-edit-group="${item.uid}">Edit</button>
+          <button type="button" data-edit-name="${item.uid}">Edit Name</button>
+          <button type="button" data-edit-group="${item.uid}">Edit Burrito</button>
           <button type="button" data-duplicate-group="${item.uid}">Duplicate</button>
           <button type="button" data-remove-group="${item.uid}">Remove</button>
         </div>
@@ -270,7 +313,7 @@ function renderGroupOrderList() {
         markGroupNameRequired();
         els.groupPersonName.scrollIntoView({ behavior: "smooth", block: "center" });
         els.groupPersonName.focus();
-        showStatus("Enter the next person's name, then tap Duplicate again to add the same burrito.");
+        showStatus("Enter the next name, then tap Duplicate again to add the same burrito.");
         return;
       }
 
@@ -295,19 +338,40 @@ function renderGroupOrderList() {
     });
   });
 
+
+  els.groupOrderList.querySelectorAll("[data-edit-name]").forEach(button => {
+    button.addEventListener("click", () => {
+      const item = state.cateringItems.find(entry => entry.uid === button.dataset.editName);
+      if (!item) return;
+      const updatedName = window.prompt("Update name", item.personName);
+      if (updatedName === null) return;
+      const cleanName = updatedName.trim();
+      if (!cleanName) {
+        showStatus("Name is required for this person.");
+        return;
+      }
+      item.personName = cleanName;
+      saveCateringItems();
+      renderGroupOrderList();
+      showStatus(`Name updated to ${cleanName}.`);
+    });
+  });
+
   els.groupOrderList.querySelectorAll("[data-edit-group]").forEach(button => {
     button.addEventListener("click", () => {
       const item = state.cateringItems.find(entry => entry.uid === button.dataset.editGroup);
       if (!item) return;
+      state.editingGroupUid = item.uid;
       els.groupPersonName.value = item.personName;
       els.groupBurritoSelect.value = item.id;
       els.groupBeansCheckbox.checked = item.extras.some(extra => extra.id === "beans");
-      state.cateringItems = state.cateringItems.filter(entry => entry.uid !== item.uid);
-      saveCateringItems();
       renderGroupOrderList();
-      els.groupPersonName.scrollIntoView({ behavior: "smooth", block: "center" });
-      els.groupPersonName.focus();
-      showStatus("Edit the order details, then add the person again.");
+      els.groupBurritoSelect.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => {
+        els.groupBurritoSelect.focus();
+        try { els.groupBurritoSelect.click(); } catch (error) { /* Some browsers block programmatic select opening. */ }
+      }, 250);
+      showStatus("Choose a new burrito, then tap Save Person.");
     });
   });
 }
@@ -320,6 +384,50 @@ function markGroupNameRequired() {
 function clearGroupNameRequired() {
   els.groupPersonName.classList.remove("field-error");
   if (els.groupPersonNameHint) els.groupPersonNameHint.classList.add("hidden");
+}
+
+function quickAddItem(itemId) {
+  if (!SETTINGS.acceptingOrders) return showStatus("Online ordering is currently unavailable.");
+  const item = findMenuItem(itemId);
+  if (!item || item.soldOut) return;
+  state.cart.push({
+    uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    type: "burrito",
+    id: item.id,
+    name: item.name,
+    basePrice: item.price,
+    extras: [],
+    price: item.price
+  });
+  saveCart();
+  renderCart();
+  els.cartFab.classList.remove("cart-pulse");
+  void els.cartFab.offsetWidth;
+  els.cartFab.classList.add("cart-pulse");
+  showStatus(`✓ ${item.name} added to your order.`);
+}
+
+function quickAddBeverage(beverageId) {
+  if (!SETTINGS.acceptingOrders) return showStatus("Online ordering is currently unavailable.");
+  const item = MENU.beverages.find(beverage => beverage.id === beverageId && beverage.enabled);
+  if (!item) return;
+
+  state.cart.push({
+    uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    type: "beverage",
+    id: item.id,
+    name: item.name,
+    basePrice: item.price,
+    extras: [],
+    price: item.price
+  });
+
+  saveCart();
+  renderCart();
+  els.cartFab.classList.remove("cart-pulse");
+  void els.cartFab.offsetWidth;
+  els.cartFab.classList.add("cart-pulse");
+  showStatus(`✓ ${item.name} added to your order.`);
 }
 
 function openCustomizer(itemId) {
@@ -365,6 +473,13 @@ function addSelectedToCart() {
 function renderCart() {
   const totals = calculateTotals();
   els.cartFabCount.textContent = state.cart.length;
+  if (els.stickyCartBar) {
+    const itemLabel = `${state.cart.length} Item${state.cart.length === 1 ? "" : "s"}`;
+    els.stickyCartSummary.textContent = `🛒 ${itemLabel}`;
+    els.stickyCartTotal.textContent = formatMoney(totals.total);
+    els.stickyCartBar.classList.toggle("hidden", state.cart.length === 0);
+    document.body.classList.toggle("has-sticky-cart", state.cart.length > 0);
+  }
   els.cartSubtotal.textContent = formatMoney(totals.subtotal);
   els.cartTax.textContent = formatMoney(totals.tax);
   els.cartTotal.textContent = formatMoney(totals.total);
@@ -463,6 +578,7 @@ async function submitReviewedOrder() {
 
 function resetCateringBuilder() {
   state.cateringItems = [];
+  state.editingGroupUid = null;
   ["cateringCompany", "cateringContact", "cateringPhone", "cateringDate", "cateringTime", "cateringInstructions"].forEach(id => {
     const field = document.getElementById(id);
     if (field) field.value = "";

@@ -13,27 +13,17 @@
 </head>
 <body>
   <div class="app-shell">
-    <header class="site-header">
-      <div class="brand-lockup">
-        <div class="logo-frame" aria-hidden="true">
-          <img id="siteLogo" class="site-logo" src="images/logo-placeholder.svg" alt="" />
-        </div>
-        <div>
-          <p class="eyebrow">Fresh Breakfast Burritos</p>
-          <h1>Mama Lu's</h1>
-        </div>
-      </div>
-    </header>
+    <header class="site-header site-header-minimal" aria-label="Mama Lu's header"></header>
 
     <main>
-      <section class="hero section-panel" id="home">
-        <div class="hero-pattern" aria-hidden="true"></div>
-        <div class="hero-content">
-          <p class="hero-kicker">Made fresh. Made with love.</p>
-          <h2>Breakfast burritos made easy.</h2>
-          <p class="hero-copy">Build your order, review every burrito, and submit when everything looks right.</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#menu">Start Your Order</a>
+      <section class="hero hero-identity section-panel" id="home">
+        <div class="hero-content hero-content-identity">
+          <img id="siteLogo" class="hero-logo" src="images/logo.png" alt="Mama Lu's" />
+          <h1 class="sr-only">Mama Lu's</h1>
+          <h2>Made Fresh Every Morning</h2>
+          <div class="hero-actions hero-actions-stacked">
+            <a class="button button-primary button-hero" href="#menu">🌯 Start Order</a>
+            <button id="openCateringHero" class="button button-secondary button-hero" type="button">👥 Office &amp; Group Orders</button>
             <a id="callButton" class="button button-secondary hidden" href="tel:+19156427291">Call Now</a>
             <a id="textButton" class="button button-secondary hidden" href="sms:+19156427291">Text Us</a>
           </div>
@@ -53,19 +43,14 @@
 
       <section id="beverageSection" class="menu-section hidden">
         <div class="section-heading">
-          <p class="eyebrow">Coming Later</p>
+          <p class="eyebrow">Test Preview</p>
           <h2>Beverages</h2>
-          <p>Built into the system and hidden until you are ready.</p>
+          <p>Previewing beverage layout for future launch.</p>
         </div>
         <div id="beverageGrid" class="menu-grid compact"></div>
       </section>
 
-      <section id="cateringSection" class="catering-section section-panel">
-        <div class="section-heading left">
-          <p class="eyebrow">Large Orders</p>
-          <h2>Office &amp; Group Orders</h2>
-          <p>Build one order with individual burritos for everyone in your group. Perfect for offices, job sites, schools, meetings, and family gatherings.</p>
-        </div>
+      <section id="cateringSection" class="catering-section section-panel hidden" aria-hidden="true">
         <button id="openCatering" class="button button-secondary" type="button">Open Office & Group Order</button>
       </section>
 
@@ -109,6 +94,12 @@
       <span>© 2026 Mama Lu's</span>
     </footer>
   </div>
+
+  <button id="stickyCartBar" class="sticky-cart-bar hidden" type="button" aria-label="View breakfast order">
+    <span id="stickyCartSummary">🛒 0 Items</span>
+    <strong id="stickyCartTotal">$0.00</strong>
+    <span>View Order →</span>
+  </button>
 
   <button id="cartFab" class="cart-fab" type="button" aria-label="Open order cart">
     <span>🛒</span>
@@ -217,12 +208,12 @@
       <div class="group-order-builder">
         <div class="builder-heading">
           <h3>Add Individual Orders</h3>
-          <p class="muted">Enter a person's name, choose their burrito, add beans if needed, then add them to the group order.</p>
+          <p class="muted">Enter a name, choose their burrito, add beans if needed, then add them to the group order.</p>
           <div id="groupOrderStats" class="group-order-stats"><span>Let's build your group order.</span><strong>Start by adding the first person below.</strong></div>
         </div>
         <div class="form-grid">
-          <label class="field-label">Full Name
-            <input id="groupPersonName" type="text" placeholder="Full Name" />
+          <label class="field-label">Name
+            <input id="groupPersonName" type="text" placeholder="Name" />
             <small id="groupPersonNameHint" class="field-hint hidden">* Required</small>
           </label>
           <label class="field-label">Burrito

@@ -93,13 +93,11 @@ const MENU = {
     }
   ],
   beverages: [
-    { id: "horchata", name: "Horchata", category: "Agua Frescas", price: 4.50, enabled: true },
-    { id: "coconut", name: "Coconut", category: "Agua Frescas", price: 4.50, enabled: true },
-    { id: "watermelon", name: "Watermelon", category: "Agua Frescas", price: 4.50, enabled: true },
-    { id: "limonada", name: "Limonada", category: "Agua Frescas", price: 4.50, enabled: true },
-    { id: "pina-colada", name: "Piña Colada", category: "Agua Frescas", price: 4.50, enabled: true },
     { id: "coke", name: "Coke", category: "Soft Drinks", price: 1.00, enabled: true },
+    { id: "sprite", name: "Sprite", category: "Soft Drinks", price: 1.00, enabled: true },
     { id: "dr-pepper", name: "Dr Pepper", category: "Soft Drinks", price: 1.00, enabled: true },
-    { id: "sprite", name: "Sprite", category: "Soft Drinks", price: 1.00, enabled: true }
+    { id: "coco-agua", name: "Coco Agua", category: "Agua Frescas", price: 4.50, enabled: true },
+    { id: "watermelon-agua", name: "Watermelon Agua", category: "Agua Frescas", price: 4.50, enabled: true },
+    { id: "horchata", name: "Horchata", category: "Agua Frescas", price: 4.50, enabled: true }
   ]
 };

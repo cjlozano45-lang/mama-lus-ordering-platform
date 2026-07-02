@@ -94,3 +94,20 @@ testMode: false
 ## Version
 
 Codename: **Sunrise**
+
+
+## RC6 - Identity Build
+- Removed the patterned hero background.
+- Made the logo the homepage focal point.
+- Added top-level Start Order and Office & Group Orders actions.
+- Removed the lower duplicate group-order callout from the homepage flow.
+
+
+### RC6.1 Notes
+- Use **Quick Add** for plain burritos with no extras.
+- Tap the card or **Customize** when beans or quantity changes are needed.
+- In Office & Group Orders, **Edit** now changes the button to **Save Person** and keeps the original entry until saved.
+
+
+## RC7.1 testing notes
+Test the homepage on mobile first. Confirm that the logo is the focal point, both ordering buttons are visible near the top, Quick Add works with one tap, and the sticky cart bar appears after adding an item.
