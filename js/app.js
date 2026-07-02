@@ -745,6 +745,10 @@ function isValidPhone(value) {
   return /^\(\d{3}\) \d{3}-\d{4}$/.test(value);
 }
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
+}
+
 function formatMoney(value) {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }

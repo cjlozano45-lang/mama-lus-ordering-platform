@@ -535,3 +535,28 @@ select:focus { border-color: var(--navy); box-shadow: 0 0 0 4px rgba(4,30,66,.1)
 @media (min-width: 721px) {
   .group-contact-grid { grid-auto-rows: auto; }
 }
+
+
+/* RC7.6 alignment and required email stabilization */
+.field-label > input[type="text"],
+.field-label > input[type="tel"],
+.field-label > input[type="email"],
+.field-label > input[type="date"] {
+  min-height: 58px;
+  display: block;
+}
+.group-contact-grid { align-items: start; }
+.group-contact-grid .field-label {
+  margin: 0;
+  grid-template-rows: auto 58px;
+}
+.group-contact-grid .field-label > input { align-self: start; }
+.group-receipt-hint {
+  margin: -6px 0 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+@media (max-width: 720px) {
+  .group-contact-grid .field-label { grid-template-rows: auto auto; }
+  .group-receipt-hint { margin-top: 0; }
+}

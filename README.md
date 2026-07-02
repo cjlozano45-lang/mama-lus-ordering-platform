@@ -135,5 +135,5 @@ Test the homepage on mobile first. Confirm that the logo is the focal point, bot
 
 
 
-## RC7.5 Notes
+## RC7.6 Notes
 Office & Group Orders no longer show Requested Date. Email is required and aligned with Phone Number. The group review button now routes correctly to the review screen.

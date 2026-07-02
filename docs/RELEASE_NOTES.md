@@ -161,8 +161,15 @@
 
 
 
-## RC7.5
+## RC7.6
 - Fixed Office & Group Order review button.
 - Removed Requested Date from Office & Group Orders.
 - Cleaned up group email field alignment and removed stale optional text.
 - Made Company / Group Name optional while keeping Contact Name, Phone, Email, and at least one person required.
+
+
+## RC7.6 - Group Checkout Stabilization
+- Fixed Phone/Email alignment in Office & Group Orders.
+- Removed stale optional Email label.
+- Added missing email validation helper so required email works consistently.
+- Fixed Review Office & Group Order flow when an email address is entered.

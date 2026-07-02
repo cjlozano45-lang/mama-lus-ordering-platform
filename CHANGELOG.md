@@ -100,3 +100,10 @@
 ### Important EmailJS Note
 - To send receipts to customers, the EmailJS template **To Email** field should use `{{to_email}}` instead of a fixed email address. The app sends the kitchen email to Mama Lu's and the optional receipt to the customer using that field.
 
+
+
+## RC7.6 - Group Checkout Stabilization
+- Fixed Phone/Email alignment in Office & Group Orders.
+- Removed stale optional Email label.
+- Added missing email validation helper so required email works consistently.
+- Fixed Review Office & Group Order flow when an email address is entered.
