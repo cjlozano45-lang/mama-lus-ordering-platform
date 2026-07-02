@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mama Lu's | Breakfast Burritos</title>
+  <meta name="description" content="Mama Lu's breakfast burritos. Order online for pickup." />
+  <meta name="theme-color" content="#041E42" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <div class="brand-lockup">
+        <div class="logo-frame" aria-hidden="true">
+          <img id="siteLogo" class="site-logo" src="images/logo-placeholder.svg" alt="" />
+        </div>
+        <div>
+          <p class="eyebrow">Fresh Breakfast Burritos</p>
+          <h1>Mama Lu's</h1>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero section-panel" id="home">
+        <div class="hero-pattern" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="hero-kicker">Made fresh. Made with love.</p>
+          <h2>Breakfast burritos made easy.</h2>
+          <p class="hero-copy">Build your order, review every burrito, and submit when everything looks right.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#menu">Start Your Order</a>
+            <a id="callButton" class="button button-secondary hidden" href="tel:+19156427291">Call Now</a>
+            <a id="textButton" class="button button-secondary hidden" href="sms:+19156427291">Text Us</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="statusMessage" class="status-message hidden" role="status"></section>
+
+      <section id="menu" class="menu-section">
+        <div class="section-heading">
+          <p class="eyebrow">Order Online</p>
+          <h2>Breakfast Burritos</h2>
+          <p>Select a burrito, choose your extras, and add it to your order.</p>
+        </div>
+        <div id="menuGrid" class="menu-grid"></div>
+      </section>
+
+      <section id="beverageSection" class="menu-section hidden">
+        <div class="section-heading">
+          <p class="eyebrow">Coming Later</p>
+          <h2>Beverages</h2>
+          <p>Built into the system and hidden until you are ready.</p>
+        </div>
+        <div id="beverageGrid" class="menu-grid compact"></div>
+      </section>
+
+      <section id="cateringSection" class="catering-section section-panel">
+        <div class="section-heading left">
+          <p class="eyebrow">Large Orders</p>
+          <h2>Office &amp; Group Orders</h2>
+          <p>Build one order with individual burritos for everyone in your group. Perfect for offices, job sites, schools, meetings, and family gatherings.</p>
+        </div>
+        <button id="openCatering" class="button button-secondary" type="button">Open Office & Group Order</button>
+      </section>
+
+      <section id="checkout" class="checkout-section section-panel">
+        <div class="section-heading left">
+          <p class="eyebrow">Your Information</p>
+          <h2>Almost Done</h2>
+          <p>We will only use your phone number if we need to contact you about your order.</p>
+        </div>
+        <form id="customerForm" novalidate>
+          <div class="form-grid">
+            <label class="field-label">Full Name
+              <input id="customerName" type="text" autocomplete="name" placeholder="Full Name" required />
+            </label>
+            <label class="field-label">Phone Number
+              <input id="customerPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(915) 555-1234" required />
+            </label>
+          </div>
+
+          <fieldset class="contact-preference">
+            <legend>How would you like to be contacted?</legend>
+            <label class="pill-radio"><input type="radio" name="contactPreference" value="Text" checked /> Text</label>
+            <label class="pill-radio"><input type="radio" name="contactPreference" value="Call" /> Call</label>
+          </fieldset>
+
+          <label class="field-label">Anything else you'd like us to know? <span>(optional)</span>
+            <textarea id="specialInstructions" maxlength="250" placeholder="No onions, extra salsa, please text when ready..."></textarea>
+          </label>
+
+          <div class="form-actions">
+            <button id="reviewOrderButton" class="button button-primary" type="submit">Review Order</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <strong>Mama Lu's</strong>
+      <span>Breakfast Burritos</span>
+      <span id="footerPhone">(915) 642-7291</span>
+      <span>© 2026 Mama Lu's</span>
+    </footer>
+  </div>
+
+  <button id="cartFab" class="cart-fab" type="button" aria-label="Open order cart">
+    <span>🛒</span>
+    <strong id="cartFabCount">0</strong>
+  </button>
+
+  <aside id="cartDrawer" class="cart-drawer" aria-label="Order cart" aria-hidden="true">
+    <div class="drawer-header">
+      <div>
+        <p class="eyebrow">Your Order</p>
+        <h2>Breakfast Order</h2>
+      </div>
+      <button id="closeCart" class="icon-button" type="button" aria-label="Close cart">×</button>
+    </div>
+    <div id="cartItems" class="cart-items"></div>
+    <div class="cart-totals">
+      <div><span>Subtotal</span><strong id="cartSubtotal">$0.00</strong></div>
+      <div id="taxLine" class="hidden"><span>Tax</span><strong id="cartTax">$0.00</strong></div>
+      <div class="grand-total"><span>Total</span><strong id="cartTotal">$0.00</strong></div>
+    </div>
+    <p class="cart-reassurance">Your order is not sent until you review it and press Send Order.</p>
+    <div class="cart-actions">
+      <button class="button button-secondary full" type="button" id="clearCartButton">Clear All</button>
+      <a class="button button-primary full" href="#checkout" id="cartCheckoutButton">Continue</a>
+    </div>
+  </aside>
+  <div id="drawerBackdrop" class="backdrop hidden"></div>
+
+  <dialog id="customizeModal" class="modal">
+    <form method="dialog" class="modal-card">
+      <button class="icon-button modal-close" value="cancel" aria-label="Close">×</button>
+      <p class="eyebrow">Customize</p>
+      <h2 id="modalItemName">Burrito</h2>
+      <p id="modalItemDescription" class="muted"></p>
+
+      <div class="modal-section">
+        <h3>Quantity</h3>
+        <div class="quantity-control">
+          <button id="decreaseQty" type="button">−</button>
+          <strong id="modalQty">1</strong>
+          <button id="increaseQty" type="button">+</button>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <h3>Extras</h3>
+        <label class="extra-option">
+          <input id="beansCheckbox" type="checkbox" />
+          <span class="custom-checkbox" aria-hidden="true"></span>
+          <span class="extra-copy">
+            <strong>Add Beans</strong>
+            <small>+$0.25 per burrito</small>
+          </span>
+        </label>
+        <div id="futureExtras" class="future-extras hidden"></div>
+      </div>
+
+      <button id="addToCartButton" class="button button-primary full" type="button">Add to Order</button>
+    </form>
+  </dialog>
+
+  <dialog id="reviewModal" class="modal wide">
+    <form method="dialog" class="modal-card">
+      <button class="icon-button modal-close" value="cancel" aria-label="Close">×</button>
+      <p class="eyebrow">Step 3</p>
+      <h2>Review Your Order</h2>
+      <div id="reviewContent" class="review-content"></div>
+      <p class="review-note">Please review your order before sending.</p>
+      <div class="review-actions">
+        <button class="button button-secondary" value="cancel">Back</button>
+        <button id="submitOrderButton" class="button button-primary" type="button">Send Order</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirmationModal" class="modal">
+    <div class="modal-card confirmation-card">
+      <div class="success-mark">✓</div>
+      <h2>Order Received!</h2>
+      <p>Thank you for choosing Mama Lu's. Your order has been sent.</p>
+      <div class="confirmation-order"><span>Order Number</span><strong id="confirmationOrderNumber">ML-1001</strong></div>
+      <p>We will contact you if we have any questions regarding your order.</p>
+      <p class="muted">For immediate assistance, please call or text <strong>(915) 642-7291</strong>.</p>
+      <button id="newOrderButton" class="button button-primary full" type="button">Start New Order</button>
+    </div>
+  </dialog>
+
+  <dialog id="cateringModal" class="modal wide">
+    <form method="dialog" class="modal-card catering-card">
+      <button class="icon-button modal-close" value="cancel" aria-label="Close">×</button>
+      <p class="eyebrow">Large Orders</p>
+      <h2>Office &amp; Group Orders</h2>
+      <p class="muted">Requested date and time are optional. Tip: use Duplicate when several people want the same burrito.</p>
+      <div class="form-grid">
+        <label class="field-label">Company / Group Name<input id="cateringCompany" type="text" /></label>
+        <label class="field-label">Contact Name<input id="cateringContact" type="text" /></label>
+        <label class="field-label">Phone Number<input id="cateringPhone" type="tel" inputmode="numeric" placeholder="(915) 555-1234" /></label>
+        <label class="field-label">Requested Date <span>(optional)</span><input id="cateringDate" type="date" /></label>
+        <label class="field-label">Requested Time <span>(optional)</span><input id="cateringTime" type="time" /></label>
+      </div>
+      <fieldset class="contact-preference">
+        <legend>Preferred Contact</legend>
+        <label class="pill-radio"><input type="radio" name="cateringContactPreference" value="Text" checked /> Text</label>
+        <label class="pill-radio"><input type="radio" name="cateringContactPreference" value="Call" /> Call</label>
+      </fieldset>
+      <div class="group-order-builder">
+        <div class="builder-heading">
+          <h3>Add Individual Orders</h3>
+          <p class="muted">Enter a person's name, choose their burrito, add beans if needed, then add them to the group order.</p>
+          <div id="groupOrderStats" class="group-order-stats"><span>Let's build your group order.</span><strong>Start by adding the first person below.</strong></div>
+        </div>
+        <div class="form-grid">
+          <label class="field-label">Full Name
+            <input id="groupPersonName" type="text" placeholder="Full Name" />
+            <small id="groupPersonNameHint" class="field-hint hidden">* Required</small>
+          </label>
+          <label class="field-label">Burrito
+            <select id="groupBurritoSelect"></select>
+          </label>
+        </div>
+        <div class="group-options-row">
+          <label class="extra-option group-extra-option">
+            <input id="groupBeansCheckbox" type="checkbox" />
+            <span class="custom-checkbox" aria-hidden="true"></span>
+            <span class="extra-copy">
+              <strong>Add Beans</strong>
+              <small>+$0.25 for this person's burrito</small>
+            </span>
+          </label>
+          <button id="addGroupPersonButton" class="button button-secondary" type="button">Add Person</button>
+        </div>
+        <div id="groupOrderList" class="group-order-list" aria-live="polite"></div>
+      </div>
+      <label class="field-label">Special Instructions <span>(optional)</span>
+        <textarea id="cateringInstructions" maxlength="250" placeholder="Any group notes or pickup details..."></textarea>
+      </label>
+      <button id="submitCateringButton" class="button button-primary full" type="button">Review Office & Group Order</button>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/email.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

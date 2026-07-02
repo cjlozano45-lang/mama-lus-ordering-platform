@@ -1,0 +1,643 @@
+const state = {
+  cart: loadCart(),
+  selectedItem: null,
+  selectedQty: 1,
+  orderCounter: Number(localStorage.getItem("ml_order_counter")) || SETTINGS.orderNumberStart,
+  cateringCounter: Number(localStorage.getItem("ml_catering_counter")) || SETTINGS.cateringNumberStart,
+  lastSubmittedOrder: null,
+  pendingReviewOrder: null,
+  pendingReviewType: "regular",
+  cateringItems: loadCateringItems()
+};
+
+const els = {};
+
+document.addEventListener("DOMContentLoaded", () => {
+  cacheElements();
+  hydrateSettings();
+  renderMenu();
+  renderBeverages();
+  renderGroupBurritoOptions();
+  renderGroupOrderList();
+  renderCart();
+  bindEvents();
+});
+
+function cacheElements() {
+  Object.assign(els, {
+    menuGrid: document.getElementById("menuGrid"),
+    beverageSection: document.getElementById("beverageSection"),
+    beverageGrid: document.getElementById("beverageGrid"),
+    cateringSection: document.getElementById("cateringSection"),
+    callButton: document.getElementById("callButton"),
+    textButton: document.getElementById("textButton"),
+    statusMessage: document.getElementById("statusMessage"),
+    cartFab: document.getElementById("cartFab"),
+    cartFabCount: document.getElementById("cartFabCount"),
+    cartDrawer: document.getElementById("cartDrawer"),
+    drawerBackdrop: document.getElementById("drawerBackdrop"),
+    closeCart: document.getElementById("closeCart"),
+    cartItems: document.getElementById("cartItems"),
+    cartSubtotal: document.getElementById("cartSubtotal"),
+    cartTax: document.getElementById("cartTax"),
+    cartTotal: document.getElementById("cartTotal"),
+    taxLine: document.getElementById("taxLine"),
+    clearCartButton: document.getElementById("clearCartButton"),
+    cartCheckoutButton: document.getElementById("cartCheckoutButton"),
+    checkoutSection: document.getElementById("checkout"),
+    customizeModal: document.getElementById("customizeModal"),
+    modalItemName: document.getElementById("modalItemName"),
+    modalItemDescription: document.getElementById("modalItemDescription"),
+    modalQty: document.getElementById("modalQty"),
+    decreaseQty: document.getElementById("decreaseQty"),
+    increaseQty: document.getElementById("increaseQty"),
+    beansCheckbox: document.getElementById("beansCheckbox"),
+    addToCartButton: document.getElementById("addToCartButton"),
+    customerForm: document.getElementById("customerForm"),
+    customerName: document.getElementById("customerName"),
+    customerPhone: document.getElementById("customerPhone"),
+    specialInstructions: document.getElementById("specialInstructions"),
+    reviewModal: document.getElementById("reviewModal"),
+    reviewContent: document.getElementById("reviewContent"),
+    submitOrderButton: document.getElementById("submitOrderButton"),
+    confirmationModal: document.getElementById("confirmationModal"),
+    confirmationOrderNumber: document.getElementById("confirmationOrderNumber"),
+    newOrderButton: document.getElementById("newOrderButton"),
+    openCatering: document.getElementById("openCatering"),
+    cateringModal: document.getElementById("cateringModal"),
+    cateringPhone: document.getElementById("cateringPhone"),
+    groupPersonName: document.getElementById("groupPersonName"),
+    groupPersonNameHint: document.getElementById("groupPersonNameHint"),
+    groupBurritoSelect: document.getElementById("groupBurritoSelect"),
+    groupBeansCheckbox: document.getElementById("groupBeansCheckbox"),
+    groupOrderStats: document.getElementById("groupOrderStats"),
+    addGroupPersonButton: document.getElementById("addGroupPersonButton"),
+    groupOrderList: document.getElementById("groupOrderList"),
+    submitCateringButton: document.getElementById("submitCateringButton")
+  });
+}
+
+function hydrateSettings() {
+  document.title = SETTINGS.pageTitle;
+  document.getElementById("footerPhone").textContent = SETTINGS.phone;
+  els.callButton.href = `tel:${SETTINGS.phoneHref}`;
+  els.textButton.href = `sms:${SETTINGS.phoneHref}`;
+  toggle(els.callButton, SETTINGS.callButtonEnabled);
+  toggle(els.textButton, SETTINGS.textButtonEnabled);
+  toggle(els.cateringSection, SETTINGS.cateringEnabled);
+  if (!SETTINGS.acceptingOrders) showStatus("Online ordering is currently unavailable. Please check back later.");
+  if (SETTINGS.debugMode) console.log("Project Sunrise settings", SETTINGS);
+}
+
+function bindEvents() {
+  els.cartFab.addEventListener("click", openCart);
+  els.closeCart.addEventListener("click", closeCart);
+  els.drawerBackdrop.addEventListener("click", closeCart);
+  els.clearCartButton.addEventListener("click", clearCart);
+  els.cartCheckoutButton.addEventListener("click", goToCheckout);
+  els.decreaseQty.addEventListener("click", () => setModalQty(state.selectedQty - 1));
+  els.increaseQty.addEventListener("click", () => setModalQty(state.selectedQty + 1));
+  els.addToCartButton.addEventListener("click", addSelectedToCart);
+  els.customerPhone.addEventListener("input", (event) => event.target.value = formatPhone(event.target.value));
+  els.cateringPhone.addEventListener("input", (event) => event.target.value = formatPhone(event.target.value));
+  els.groupPersonName.addEventListener("input", clearGroupNameRequired);
+  els.customerForm.addEventListener("submit", handleReviewOrder);
+  els.submitOrderButton.addEventListener("click", submitReviewedOrder);
+  els.newOrderButton.addEventListener("click", resetOrder);
+  els.openCatering.addEventListener("click", () => els.cateringModal.showModal());
+  els.addGroupPersonButton.addEventListener("click", addGroupPersonOrder);
+  els.submitCateringButton.addEventListener("click", reviewCateringOrder);
+}
+
+
+function goToCheckout(event) {
+  event.preventDefault();
+  if (!state.cart.length) {
+    return showStatus("Please add at least one item before checking out.");
+  }
+  closeCart();
+  els.checkoutSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => els.customerName.focus({ preventScroll: true }), 450);
+}
+
+function renderMenu() {
+  const category = MENU.categories.find(cat => cat.id === "breakfast-burritos");
+  els.menuGrid.innerHTML = category.items
+    .filter(item => item.enabled)
+    .map(item => `
+      <article class="menu-card ${item.soldOut ? "sold-out" : ""}" data-item-id="${item.id}" tabindex="${item.soldOut ? "-1" : "0"}" role="button" aria-label="Customize ${item.name}">
+        <div class="food-icon" aria-hidden="true">🌯</div>
+        <div class="card-body">
+          <h3>${item.name}</h3>
+          <p>${item.description}</p>
+        </div>
+        <div class="card-footer">
+          <strong>${formatMenuPrice(item.price)}</strong>
+          <span class="button button-small ${item.soldOut ? "button-disabled" : "button-secondary"}" aria-hidden="true">${item.soldOut ? "Sold Out" : "Customize"}</span>
+        </div>
+      </article>
+    `).join("");
+
+  els.menuGrid.querySelectorAll(".menu-card:not(.sold-out)").forEach(card => {
+    card.addEventListener("click", () => openCustomizer(card.dataset.itemId));
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openCustomizer(card.dataset.itemId);
+      }
+    });
+  });
+}
+
+function renderBeverages() {
+  toggle(els.beverageSection, SETTINGS.beveragesEnabled);
+  if (!SETTINGS.beveragesEnabled) return;
+  els.beverageGrid.innerHTML = MENU.beverages
+    .filter(item => item.enabled)
+    .map(item => `
+      <article class="menu-card beverage-card" data-beverage-id="${item.id}">
+        <div class="food-icon" aria-hidden="true">🥤</div>
+        <h3>${item.name}</h3>
+        <p>${item.category}</p>
+        <div class="card-footer"><strong>${formatMoney(item.price)}</strong><button class="button button-small button-secondary" type="button">Add</button></div>
+      </article>
+    `).join("");
+}
+
+function renderGroupBurritoOptions() {
+  if (!els.groupBurritoSelect) return;
+  const burritos = MENU.categories
+    .find(category => category.id === "breakfast-burritos")
+    .items
+    .filter(item => item.enabled && !item.soldOut);
+
+  els.groupBurritoSelect.innerHTML = `<option value="">Select a burrito</option>` + burritos.map(item =>
+    `<option value="${item.id}">${item.name} - ${formatMenuPrice(item.price)}</option>`
+  ).join("");
+}
+
+function addGroupPersonOrder() {
+  const personName = els.groupPersonName.value.trim();
+  const burritoId = els.groupBurritoSelect.value;
+  const item = findMenuItem(burritoId);
+  if (!personName) {
+    markGroupNameRequired();
+    return showStatus("Please enter the person's name for this group order.");
+  }
+  if (!item) return showStatus("Please choose a burrito for this person.");
+
+  const beans = els.groupBeansCheckbox.checked;
+  state.cateringItems.push({
+    uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    personName,
+    type: "burrito",
+    id: item.id,
+    name: item.name,
+    basePrice: item.price,
+    extras: beans ? [{ id: "beans", name: "Beans", price: 0.25 }] : [],
+    price: item.price + (beans ? 0.25 : 0)
+  });
+
+  saveCateringItems();
+
+  els.groupPersonName.value = "";
+  els.groupBurritoSelect.value = "";
+  els.groupBeansCheckbox.checked = false;
+  renderGroupOrderList();
+  els.groupPersonName.focus();
+  showStatus(`${personName} added to the group order.`);
+}
+
+function renderGroupOrderList() {
+  if (!els.groupOrderList) return;
+  const groupTotal = state.cateringItems.reduce((sum, item) => sum + item.price, 0);
+  if (els.addGroupPersonButton) {
+    els.addGroupPersonButton.textContent = state.cateringItems.length ? "Add Another Person" : "Add Person";
+  }
+
+  if (els.groupOrderStats) {
+    if (!state.cateringItems.length) {
+      els.groupOrderStats.innerHTML = `<span>Let's build your group order.</span><strong>Start by adding the first person below.</strong>`;
+    } else {
+      els.groupOrderStats.innerHTML = `<span>People Added: ${state.cateringItems.length}</span><strong>Total: ${formatMoney(groupTotal)}</strong>`;
+    }
+  }
+
+  if (!state.cateringItems.length) {
+    els.groupOrderList.innerHTML = `<div class="empty-cart"><strong>No individual orders added yet.</strong><p>Add the first person's name and burrito to start the group order.</p></div>`;
+    return;
+  }
+
+  els.groupOrderList.innerHTML = `
+    <div class="group-order-list-heading">
+      <strong>Office & Group Orders</strong>
+      <span>${state.cateringItems.length} burrito${state.cateringItems.length === 1 ? "" : "s"}</span>
+    </div>
+    ${state.cateringItems.map(item => `
+      <div class="group-order-item">
+        <div>
+          <strong>✓ ${escapeHtml(item.personName)}</strong>
+          <small>${escapeHtml(item.name)}${item.extras.length ? " + Beans" : ""}</small>
+        </div>
+        <strong>${formatMoney(item.price)}</strong>
+        <div class="group-actions">
+          <button type="button" data-edit-group="${item.uid}">Edit</button>
+          <button type="button" data-duplicate-group="${item.uid}">Duplicate</button>
+          <button type="button" data-remove-group="${item.uid}">Remove</button>
+        </div>
+      </div>
+    `).join("")}
+  `;
+
+  els.groupOrderList.querySelectorAll("[data-remove-group]").forEach(button => {
+    button.addEventListener("click", () => {
+      state.cateringItems = state.cateringItems.filter(item => item.uid !== button.dataset.removeGroup);
+      saveCateringItems();
+      renderGroupOrderList();
+    });
+  });
+
+  els.groupOrderList.querySelectorAll("[data-duplicate-group]").forEach(button => {
+    button.addEventListener("click", () => {
+      const item = state.cateringItems.find(entry => entry.uid === button.dataset.duplicateGroup);
+      if (!item) return;
+
+      const duplicateName = els.groupPersonName.value.trim();
+      els.groupBurritoSelect.value = item.id;
+      els.groupBeansCheckbox.checked = item.extras.some(extra => extra.id === "beans");
+
+      if (!duplicateName) {
+        markGroupNameRequired();
+        els.groupPersonName.scrollIntoView({ behavior: "smooth", block: "center" });
+        els.groupPersonName.focus();
+        showStatus("Enter the next person's name, then tap Duplicate again to add the same burrito.");
+        return;
+      }
+
+      clearGroupNameRequired();
+      state.cateringItems.push({
+        uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        personName: duplicateName,
+        type: item.type,
+        id: item.id,
+        name: item.name,
+        basePrice: item.basePrice,
+        extras: item.extras.map(extra => ({ ...extra })),
+        price: item.price
+      });
+      saveCateringItems();
+      els.groupPersonName.value = "";
+      els.groupBurritoSelect.value = "";
+      els.groupBeansCheckbox.checked = false;
+      renderGroupOrderList();
+      els.groupPersonName.focus();
+      showStatus(`Duplicated order added for ${duplicateName}.`);
+    });
+  });
+
+  els.groupOrderList.querySelectorAll("[data-edit-group]").forEach(button => {
+    button.addEventListener("click", () => {
+      const item = state.cateringItems.find(entry => entry.uid === button.dataset.editGroup);
+      if (!item) return;
+      els.groupPersonName.value = item.personName;
+      els.groupBurritoSelect.value = item.id;
+      els.groupBeansCheckbox.checked = item.extras.some(extra => extra.id === "beans");
+      state.cateringItems = state.cateringItems.filter(entry => entry.uid !== item.uid);
+      saveCateringItems();
+      renderGroupOrderList();
+      els.groupPersonName.scrollIntoView({ behavior: "smooth", block: "center" });
+      els.groupPersonName.focus();
+      showStatus("Edit the order details, then add the person again.");
+    });
+  });
+}
+
+function markGroupNameRequired() {
+  els.groupPersonName.classList.add("field-error");
+  if (els.groupPersonNameHint) els.groupPersonNameHint.classList.remove("hidden");
+}
+
+function clearGroupNameRequired() {
+  els.groupPersonName.classList.remove("field-error");
+  if (els.groupPersonNameHint) els.groupPersonNameHint.classList.add("hidden");
+}
+
+function openCustomizer(itemId) {
+  if (!SETTINGS.acceptingOrders) return showStatus("Online ordering is currently unavailable.");
+  const item = findMenuItem(itemId);
+  if (!item || item.soldOut) return;
+  state.selectedItem = item;
+  state.selectedQty = 1;
+  els.modalItemName.textContent = item.name;
+  els.modalItemDescription.textContent = item.description;
+  els.beansCheckbox.checked = false;
+  setModalQty(1);
+  els.customizeModal.showModal();
+}
+
+function setModalQty(qty) {
+  state.selectedQty = Math.max(1, Math.min(SETTINGS.cateringLimit, qty));
+  els.modalQty.textContent = state.selectedQty;
+}
+
+function addSelectedToCart() {
+  if (!state.selectedItem) return;
+  const beans = els.beansCheckbox.checked;
+  for (let i = 0; i < state.selectedQty; i++) {
+    state.cart.push({
+      uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+      type: "burrito",
+      id: state.selectedItem.id,
+      name: state.selectedItem.name,
+      basePrice: state.selectedItem.price,
+      extras: beans ? [{ id: "beans", name: "Beans", price: 0.25 }] : [],
+      price: state.selectedItem.price + (beans ? 0.25 : 0)
+    });
+  }
+  saveCart();
+  renderCart();
+  els.customizeModal.close();
+  showStatus(`✓ ${state.selectedItem.name} added to your order.`);
+  openCart();
+  if (getBurritoCount() >= SETTINGS.cateringThreshold) showStatus("Large order detected. For 25 burritos or more, the Catering Form may be easier.");
+}
+
+function renderCart() {
+  const totals = calculateTotals();
+  els.cartFabCount.textContent = state.cart.length;
+  els.cartSubtotal.textContent = formatMoney(totals.subtotal);
+  els.cartTax.textContent = formatMoney(totals.tax);
+  els.cartTotal.textContent = formatMoney(totals.total);
+  toggle(els.taxLine, SETTINGS.taxEnabled);
+
+  if (!state.cart.length) {
+    els.cartItems.innerHTML = `<div class="empty-cart"><strong>Your order is empty.</strong><p>Choose your favorite breakfast burrito to get started.</p></div>`;
+    return;
+  }
+
+  els.cartItems.innerHTML = state.cart.map(item => `
+    <div class="cart-item">
+      <div>
+        <strong>1 × ${item.name}</strong>
+        ${item.extras.map(extra => `<small>+ ${extra.name}</small>`).join("")}
+      </div>
+      <div class="cart-item-actions">
+        <span>${formatMoney(item.price)}</span>
+        <button type="button" data-remove="${item.uid}">Remove</button>
+      </div>
+    </div>
+  `).join("");
+
+  els.cartItems.querySelectorAll("[data-remove]").forEach(button => {
+    button.addEventListener("click", () => removeCartItem(button.dataset.remove));
+  });
+}
+
+function removeCartItem(uid) {
+  state.cart = state.cart.filter(item => item.uid !== uid);
+  saveCart();
+  renderCart();
+}
+
+function clearCart() {
+  if (!state.cart.length) {
+    return showStatus("Your breakfast order is already empty.");
+  }
+
+  const shouldClear = window.confirm("Clear your entire breakfast order and start over?");
+  if (!shouldClear) return;
+
+  state.cart = [];
+  saveCart();
+  renderCart();
+  showStatus("Your breakfast order has been cleared.");
+}
+
+function handleReviewOrder(event) {
+  event.preventDefault();
+  if (!state.cart.length) return showStatus("Please add at least one item before reviewing your order.");
+  if (!els.customerName.value.trim()) return showStatus("Please enter your name.");
+  if (!isValidPhone(els.customerPhone.value)) return showStatus("Please enter a valid phone number in this format: (915) 555-1234.");
+
+  const order = buildOrderPayload();
+  state.pendingReviewType = "regular";
+  state.pendingReviewOrder = order;
+  els.reviewContent.innerHTML = renderReview(order);
+  els.submitOrderButton.textContent = "Send Order";
+  els.reviewModal.showModal();
+}
+
+async function submitReviewedOrder() {
+  const order = state.pendingReviewOrder || buildOrderPayload();
+  const type = state.pendingReviewType || "regular";
+  state.lastSubmittedOrder = order;
+  els.submitOrderButton.disabled = true;
+  els.submitOrderButton.textContent = "Sending...";
+
+  try {
+    if (type === "catering") {
+      await sendCateringEmail(order);
+      state.cateringCounter += 1;
+      localStorage.setItem("ml_catering_counter", state.cateringCounter);
+      resetCateringBuilder();
+    } else {
+      await sendOrderEmail(order);
+      state.orderCounter += 1;
+      localStorage.setItem("ml_order_counter", state.orderCounter);
+      state.cart = [];
+      saveCart();
+      renderCart();
+    }
+
+    els.reviewModal.close();
+    els.confirmationOrderNumber.textContent = order.orderNumber;
+    els.confirmationModal.showModal();
+  } catch (error) {
+    console.error(error);
+    showStatus("We couldn't send your order right now. Please try again, or call us if the problem continues.");
+  } finally {
+    els.submitOrderButton.disabled = false;
+    els.submitOrderButton.textContent = "Send Order";
+  }
+}
+
+function resetCateringBuilder() {
+  state.cateringItems = [];
+  ["cateringCompany", "cateringContact", "cateringPhone", "cateringDate", "cateringTime", "cateringInstructions"].forEach(id => {
+    const field = document.getElementById(id);
+    if (field) field.value = "";
+  });
+  if (els.groupPersonName) els.groupPersonName.value = "";
+  if (els.groupBurritoSelect) els.groupBurritoSelect.value = "";
+  if (els.groupBeansCheckbox) els.groupBeansCheckbox.checked = false;
+  const textPref = document.querySelector('input[name="cateringContactPreference"][value="Text"]');
+  if (textPref) textPref.checked = true;
+  saveCateringItems();
+  renderGroupOrderList();
+}
+
+function resetOrder() {
+  els.confirmationModal.close();
+  els.customerForm.reset();
+  document.querySelector('input[name="contactPreference"][value="Text"]').checked = true;
+  state.pendingReviewOrder = null;
+  state.pendingReviewType = "regular";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function reviewCateringOrder() {
+  const company = document.getElementById("cateringCompany").value.trim();
+  const contact = document.getElementById("cateringContact").value.trim();
+  const phone = document.getElementById("cateringPhone").value.trim();
+  if (!company || !contact || !isValidPhone(phone) || !state.cateringItems.length) {
+    return showStatus("Please complete company name, contact name, valid phone number, and add at least one person order.");
+  }
+
+  const order = buildCateringPayload();
+  state.pendingReviewType = "catering";
+  state.pendingReviewOrder = order;
+  els.reviewContent.innerHTML = renderCateringReview(order);
+  els.submitOrderButton.textContent = "Send Group Order";
+  els.cateringModal.close();
+  els.reviewModal.showModal();
+}
+
+function buildOrderPayload() {
+  const totals = calculateTotals();
+  return {
+    orderNumber: `ML-${state.orderCounter}`,
+    date: new Date().toLocaleDateString(),
+    time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    customer: {
+      name: els.customerName.value.trim(),
+      phone: els.customerPhone.value.trim(),
+      contactPreference: document.querySelector('input[name="contactPreference"]:checked').value,
+      specialInstructions: els.specialInstructions.value.trim()
+    },
+    items: state.cart,
+    totals
+  };
+}
+
+function buildCateringPayload() {
+  const items = state.cateringItems.map(item => ({ ...item }));
+  const subtotal = items.reduce((sum, item) => sum + item.price, 0);
+  const tax = SETTINGS.taxEnabled ? subtotal * SETTINGS.taxRate : 0;
+  return {
+    orderNumber: `ML-G${state.cateringCounter}`,
+    date: new Date().toLocaleDateString(),
+    timeSubmitted: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    company: document.getElementById("cateringCompany").value.trim(),
+    contactName: document.getElementById("cateringContact").value.trim(),
+    phone: document.getElementById("cateringPhone").value.trim(),
+    contactPreference: document.querySelector('input[name="cateringContactPreference"]:checked').value,
+    requestedDate: document.getElementById("cateringDate").value,
+    requestedTime: document.getElementById("cateringTime").value,
+    items,
+    estimatedBurritos: items.length,
+    specialInstructions: document.getElementById("cateringInstructions").value.trim(),
+    totals: { subtotal, tax, total: subtotal + tax },
+    requiresManualPricing: false
+  };
+}
+
+function renderReview(order) {
+  return `
+    <div class="review-block"><h3>${order.orderNumber}</h3><p>${order.date} at ${order.time}</p></div>
+    <div class="review-block"><h3>Order</h3>${order.items.map(item => `<p><strong>1 × ${item.name}</strong>${item.extras.map(extra => `<br><span>+ ${extra.name}</span>`).join("")}</p>`).join("")}</div>
+    <div class="review-block"><h3>Customer</h3><p>${escapeHtml(order.customer.name)}<br>${escapeHtml(order.customer.phone)}<br>Preferred Contact: ${order.customer.contactPreference}</p>${order.customer.specialInstructions ? `<p><strong>Notes:</strong><br>${escapeHtml(order.customer.specialInstructions)}</p>` : ""}</div>
+    <div class="review-totals"><div><span>Subtotal</span><strong>${formatMoney(order.totals.subtotal)}</strong></div>${SETTINGS.taxEnabled ? `<div><span>Tax</span><strong>${formatMoney(order.totals.tax)}</strong></div>` : ""}<div><span>Total</span><strong>${formatMoney(order.totals.total)}</strong></div></div>
+  `;
+}
+
+function renderCateringReview(order) {
+  return `
+    <div class="review-block"><h3>${order.orderNumber}</h3><p>${order.date} at ${order.timeSubmitted}</p></div>
+    <div class="review-block"><h3>Group</h3><p><strong>${escapeHtml(order.company)}</strong><br>${escapeHtml(order.contactName)}<br>${escapeHtml(order.phone)}<br>Preferred Contact: ${order.contactPreference}</p></div>
+    <div class="review-block"><h3>Requested Date / Time</h3><p>${order.requestedDate || "Not specified"}<br>${order.requestedTime || "Not specified"}</p></div>
+    <div class="review-block"><h3>Individual Orders</h3>${order.items.map(item => `<p><strong>${escapeHtml(item.personName)}</strong><br>1 × ${escapeHtml(item.name)}${item.extras.map(extra => `<br><span>+ ${escapeHtml(extra.name)}</span>`).join("")}</p>`).join("")}<p><strong>Total burritos:</strong> ${order.estimatedBurritos}</p></div>
+    ${order.specialInstructions ? `<div class="review-block"><h3>Special Instructions</h3><p>${escapeHtml(order.specialInstructions)}</p></div>` : ""}
+    <div class="review-totals"><div><span>Subtotal</span><strong>${formatMoney(order.totals.subtotal)}</strong></div>${SETTINGS.taxEnabled ? `<div><span>Tax</span><strong>${formatMoney(order.totals.tax)}</strong></div>` : ""}<div><span>Total</span><strong>${formatMoney(order.totals.total)}</strong></div></div>
+  `;
+}
+
+function calculateTotals() {
+  const subtotal = state.cart.reduce((sum, item) => sum + item.price, 0);
+  const tax = SETTINGS.taxEnabled ? subtotal * SETTINGS.taxRate : 0;
+  return { subtotal, tax, total: subtotal + tax };
+}
+
+function getBurritoCount() {
+  return state.cart.filter(item => item.type === "burrito").length;
+}
+
+function findMenuItem(id) {
+  return MENU.categories.flatMap(category => category.items).find(item => item.id === id);
+}
+
+function openCart() {
+  els.cartDrawer.classList.add("open");
+  els.cartDrawer.setAttribute("aria-hidden", "false");
+  els.drawerBackdrop.classList.remove("hidden");
+}
+
+function closeCart() {
+  els.cartDrawer.classList.remove("open");
+  els.cartDrawer.setAttribute("aria-hidden", "true");
+  els.drawerBackdrop.classList.add("hidden");
+}
+
+function formatPhone(value) {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  const a = digits.slice(0, 3);
+  const b = digits.slice(3, 6);
+  const c = digits.slice(6, 10);
+  if (digits.length > 6) return `(${a}) ${b}-${c}`;
+  if (digits.length > 3) return `(${a}) ${b}`;
+  if (digits.length > 0) return `(${a}`;
+  return "";
+}
+
+function isValidPhone(value) {
+  return /^\(\d{3}\) \d{3}-\d{4}$/.test(value);
+}
+
+function formatMoney(value) {
+  return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+}
+
+function formatMenuPrice(value) {
+  return Number.isInteger(value) ? `$${value}` : formatMoney(value);
+}
+
+function showStatus(message) {
+  els.statusMessage.textContent = message;
+  els.statusMessage.classList.remove("hidden");
+  setTimeout(() => els.statusMessage.classList.add("hidden"), 4500);
+}
+
+function toggle(element, shouldShow) {
+  element.classList.toggle("hidden", !shouldShow);
+}
+
+function saveCart() {
+  localStorage.setItem("ml_cart", JSON.stringify(state.cart));
+}
+
+function loadCart() {
+  try { return JSON.parse(localStorage.getItem("ml_cart")) || []; }
+  catch { return []; }
+}
+
+function saveCateringItems() {
+  localStorage.setItem("ml_catering_items", JSON.stringify(state.cateringItems));
+}
+
+function loadCateringItems() {
+  try { return JSON.parse(localStorage.getItem("ml_catering_items")) || []; }
+  catch { return []; }
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
+}
