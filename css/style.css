@@ -526,3 +526,12 @@ select:focus { border-color: var(--navy); box-shadow: 0 0 0 4px rgba(4,30,66,.1)
   font-weight: 700;
   font-size: .86rem;
 }
+
+
+/* RC7.5 group checkout alignment and validation polish */
+.group-contact-grid { align-items: start; }
+.group-contact-grid .field-label { margin: 0; }
+.group-contact-grid .receipt-hint { min-height: 0; margin-top: 8px; }
+@media (min-width: 721px) {
+  .group-contact-grid { grid-auto-rows: auto; }
+}

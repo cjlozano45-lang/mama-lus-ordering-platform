@@ -74,10 +74,6 @@ ${notes}`;
 }
 
 function formatCateringForEmail(order) {
-  const dateLine = order.requestedDate ? `
-Requested Date
-${order.requestedDate}
-` : "";
   const notes = order.specialInstructions || "None";
   const taxLine = SETTINGS.taxEnabled ? `Tax\n${formatMoney(order.totals.tax)}\n\n` : "";
   const itemLines = order.items.map(item => {
@@ -110,7 +106,6 @@ ${order.email}
 Preferred Contact
 ${order.contactPreference.toUpperCase()}
 
-${dateLine}
 ${divider()}
 INDIVIDUAL ORDERS
 ${divider()}

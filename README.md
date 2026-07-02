@@ -133,3 +133,7 @@ Test the homepage on mobile first. Confirm that the logo is the focal point, bot
 ### Important EmailJS Note
 - To send receipts to customers, the EmailJS template **To Email** field should use `{{to_email}}` instead of a fixed email address. The app sends the kitchen email to Mama Lu's and the optional receipt to the customer using that field.
 
+
+
+## RC7.5 Notes
+Office & Group Orders no longer show Requested Date. Email is required and aligned with Phone Number. The group review button now routes correctly to the review screen.

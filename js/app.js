@@ -120,7 +120,7 @@ function bindEvents() {
   if (els.openCatering) els.openCatering.addEventListener("click", () => els.cateringModal.showModal());
   if (els.openCateringHero) els.openCateringHero.addEventListener("click", () => els.cateringModal.showModal());
   els.addGroupPersonButton.addEventListener("click", addGroupPersonOrder);
-  els.submitCateringButton.addEventListener("click", reviewCateringOrder);
+  els.submitCateringButton.addEventListener("click", (event) => { event.preventDefault(); reviewCateringOrder(); });
 }
 
 
@@ -587,7 +587,7 @@ async function submitReviewedOrder() {
 function resetCateringBuilder() {
   state.cateringItems = [];
   state.editingGroupUid = null;
-  ["cateringCompany", "cateringContact", "cateringPhone", "cateringEmail", "cateringDate", "cateringInstructions"].forEach(id => {
+  ["cateringCompany", "cateringContact", "cateringPhone", "cateringEmail", "cateringInstructions"].forEach(id => {
     const field = document.getElementById(id);
     if (field) field.value = "";
   });
@@ -614,8 +614,8 @@ function reviewCateringOrder() {
   const contact = document.getElementById("cateringContact").value.trim();
   const phone = document.getElementById("cateringPhone").value.trim();
   const email = document.getElementById("cateringEmail").value.trim();
-  if (!company || !contact || !isValidPhone(phone) || !state.cateringItems.length) {
-    return showStatus("Please complete company name, contact name, valid phone number, and add at least one person order.");
+  if (!contact || !isValidPhone(phone) || !state.cateringItems.length) {
+    return showStatus("Please enter a contact name, valid phone number, and add at least one person order.");
   }
   if (!email) return showStatus("Please enter an email address so we can send a copy of the group order.");
   if (!isValidEmail(email)) return showStatus("Please enter a valid email address.");
@@ -655,12 +655,11 @@ function buildCateringPayload() {
     orderNumber: `ML-G${state.cateringCounter}`,
     date: new Date().toLocaleDateString(),
     timeSubmitted: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-    company: document.getElementById("cateringCompany").value.trim(),
+    company: document.getElementById("cateringCompany").value.trim() || "Office & Group Order",
     contactName: document.getElementById("cateringContact").value.trim(),
     phone: document.getElementById("cateringPhone").value.trim(),
     email: document.getElementById("cateringEmail").value.trim(),
     contactPreference: document.querySelector('input[name="cateringContactPreference"]:checked').value,
-    requestedDate: document.getElementById("cateringDate").value,
     items,
     estimatedBurritos: items.length,
     specialInstructions: document.getElementById("cateringInstructions").value.trim(),
@@ -681,7 +680,7 @@ function renderReview(order) {
 function renderCateringReview(order) {
   return `
     <div class="review-block"><h3>${order.orderNumber}</h3><p>${order.date} at ${order.timeSubmitted}</p></div>
-    <div class="review-block"><h3>Group</h3><p><strong>${escapeHtml(order.company)}</strong><br>${escapeHtml(order.contactName)}<br>${escapeHtml(order.phone)}${order.email ? `<br>${escapeHtml(order.email)}` : ""}<br>Preferred Contact: ${order.contactPreference}</p>${order.requestedDate ? `<p><strong>Requested Date:</strong><br>${escapeHtml(order.requestedDate)}</p>` : ""}</div>
+    <div class="review-block"><h3>Group</h3><p><strong>${escapeHtml(order.company)}</strong><br>${escapeHtml(order.contactName)}<br>${escapeHtml(order.phone)}${order.email ? `<br>${escapeHtml(order.email)}` : ""}<br>Preferred Contact: ${order.contactPreference}</p></div>
     <div class="review-block"><h3>Individual Orders</h3>${order.items.map(item => `<p><strong>${escapeHtml(item.personName)}</strong><br>1 × ${escapeHtml(item.name)}${item.extras.map(extra => `<br><span>+ ${escapeHtml(extra.name)}</span>`).join("")}</p>`).join("")}<p><strong>Total burritos:</strong> ${order.estimatedBurritos}</p></div>
     ${order.specialInstructions ? `<div class="review-block"><h3>Special Instructions</h3><p>${escapeHtml(order.specialInstructions)}</p></div>` : ""}
     <div class="review-totals"><div><span>Subtotal</span><strong>${formatMoney(order.totals.subtotal)}</strong></div>${SETTINGS.taxEnabled ? `<div><span>Tax</span><strong>${formatMoney(order.totals.tax)}</strong></div>` : ""}<div><span>Total</span><strong>${formatMoney(order.totals.total)}</strong></div></div>
