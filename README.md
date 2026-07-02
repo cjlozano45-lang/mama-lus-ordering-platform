@@ -1,3 +1,10 @@
+## RC7.19 – Group Order Stabilization
+
+- Fixed Office & Group Order modal close X.
+- Clicking the backdrop now closes the group order modal.
+- Restored a full-width Add Person / Add Another Person button.
+- Bean & Cheese now hides Add Beans and cannot receive that extra.
+
 # Mama Lu's Ordering Platform — RC7.14
 
 This package is intended to be tested by uploading the extracted contents to GitHub Pages.
@@ -174,9 +181,3 @@ The customer receipt is sent to the email entered during checkout.
 - Applied deep navy and gold visual theme based on the original local project.
 - Preserved current RC ordering flow and EmailJS two-template setup.
 - Kept modern homepage/mobile experience while matching Mama Lu's navy/gold brand direction.
-
-
-## RC7.18
-- Restored Add Person / Add Another Person visibility in Office & Group Orders.
-- Hid Add Beans for Bean & Cheese in regular and group orders.
-- Added a guard so Bean & Cheese cannot accidentally receive the beans extra.

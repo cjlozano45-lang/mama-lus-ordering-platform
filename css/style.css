@@ -780,19 +780,23 @@ input:focus, textarea:focus, select:focus {
   }
 }
 
-/* RC7.18 stabilization: group builder button and beans rules */
+
+/* RC7.19 stabilization: office/group builder controls */
+.group-options-row {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
 #addGroupPersonButton {
   display: inline-flex !important;
   visibility: visible !important;
-  align-items: center;
-  justify-content: center;
-  min-height: 54px;
-  white-space: nowrap;
+  width: 100% !important;
+  min-height: 56px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 900 !important;
 }
-.group-options-row {
-  align-items: stretch;
-}
-.group-options-row .group-extra-option.hidden + #addGroupPersonButton,
-.group-options-row #addGroupPersonButton {
-  align-self: center;
+.group-extra-option.hidden {
+  display: none !important;
 }
