@@ -80,7 +80,8 @@ function cacheElements() {
     groupOrderStats: document.getElementById("groupOrderStats"),
     addGroupPersonButton: document.getElementById("addGroupPersonButton"),
     groupOrderList: document.getElementById("groupOrderList"),
-    submitCateringButton: document.getElementById("submitCateringButton")
+    submitCateringButton: document.getElementById("submitCateringButton"),
+    cancelCateringButton: document.getElementById("cancelCateringButton")
   });
 }
 
@@ -115,7 +116,6 @@ function bindEvents() {
   els.cateringPhone.addEventListener("focus", () => ensureAreaCode(els.cateringPhone));
   els.groupPersonName.addEventListener("input", clearGroupNameRequired);
   els.groupPersonName.addEventListener("keydown", handleGroupNameKeydown);
-  if (els.groupBurritoSelect) els.groupBurritoSelect.addEventListener("change", syncGroupBeansAvailability);
   if (els.cateringModal) {
     els.cateringModal.addEventListener("keydown", preventCateringEnterSubmit);
     const cateringForm = els.cateringModal.querySelector("form");
@@ -124,10 +124,53 @@ function bindEvents() {
   els.customerForm.addEventListener("submit", handleReviewOrder);
   els.submitOrderButton.addEventListener("click", submitReviewedOrder);
   els.newOrderButton.addEventListener("click", resetOrder);
-  if (els.openCatering) els.openCatering.addEventListener("click", () => els.cateringModal.showModal());
-  if (els.openCateringHero) els.openCateringHero.addEventListener("click", () => els.cateringModal.showModal());
+  if (els.openCatering) els.openCatering.addEventListener("click", openCateringModal);
+  if (els.openCateringHero) els.openCateringHero.addEventListener("click", openCateringModal);
   els.addGroupPersonButton.addEventListener("click", addGroupPersonOrder);
+  if (els.groupBurritoSelect) els.groupBurritoSelect.addEventListener("change", syncGroupBeansAvailability);
+  if (els.cancelCateringButton) els.cancelCateringButton.addEventListener("click", cancelCateringOrder);
+  if (els.cateringModal) {
+    els.cateringModal.addEventListener("click", (event) => {
+      if (event.target === els.cateringModal) closeCateringModal();
+    });
+  }
   els.submitCateringButton.addEventListener("click", (event) => { event.preventDefault(); reviewCateringOrder(); });
+}
+
+function openCateringModal() {
+  syncGroupBeansAvailability();
+  renderGroupOrderList();
+  els.cateringModal.showModal();
+}
+
+function closeCateringModal() {
+  if (els.cateringModal && els.cateringModal.open) els.cateringModal.close();
+}
+
+function cancelCateringOrder() {
+  closeCateringModal();
+  document.getElementById("menu")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function itemSupportsBeans(itemOrId) {
+  const id = typeof itemOrId === "string" ? itemOrId : itemOrId?.id;
+  return id !== "bean-cheese";
+}
+
+function syncGroupBeansAvailability() {
+  if (!els.groupBurritoSelect || !els.groupBeansCheckbox) return;
+  const supportsBeans = itemSupportsBeans(els.groupBurritoSelect.value);
+  const option = els.groupBeansCheckbox.closest(".group-extra-option") || els.groupBeansCheckbox.closest(".extra-option");
+  if (!supportsBeans) els.groupBeansCheckbox.checked = false;
+  if (option) option.classList.toggle("hidden", !supportsBeans);
+}
+
+function syncCustomizerBeansAvailability() {
+  if (!els.beansCheckbox || !state.selectedItem) return;
+  const supportsBeans = itemSupportsBeans(state.selectedItem);
+  const option = els.beansCheckbox.closest(".extra-option");
+  if (!supportsBeans) els.beansCheckbox.checked = false;
+  if (option) option.classList.toggle("hidden", !supportsBeans);
 }
 
 
@@ -221,7 +264,6 @@ function renderGroupBurritoOptions() {
   els.groupBurritoSelect.innerHTML = `<option value="">Select a burrito</option>` + burritos.map(item =>
     `<option value="${item.id}">${item.name} - ${formatMenuPrice(item.price)}</option>`
   ).join("");
-  syncGroupBeansAvailability();
 }
 
 function addGroupPersonOrder() {
@@ -473,7 +515,7 @@ function openCustomizer(itemId) {
   els.modalItemName.textContent = item.name;
   els.modalItemDescription.textContent = item.description;
   els.beansCheckbox.checked = false;
-  syncCustomizerBeansAvailability(item);
+  syncCustomizerBeansAvailability();
   setModalQty(1);
   els.customizeModal.showModal();
 }
@@ -760,27 +802,6 @@ function getBurritoCount() {
 
 function findMenuItem(id) {
   return MENU.categories.flatMap(category => category.items).find(item => item.id === id);
-}
-
-function itemSupportsBeans(itemOrId) {
-  const item = typeof itemOrId === "string" ? findMenuItem(itemOrId) : itemOrId;
-  return !!item && item.id !== "bean-cheese";
-}
-
-function syncCustomizerBeansAvailability(item) {
-  if (!els.beansCheckbox) return;
-  const option = els.beansCheckbox.closest(".extra-option");
-  const supportsBeans = itemSupportsBeans(item);
-  if (!supportsBeans) els.beansCheckbox.checked = false;
-  if (option) option.classList.toggle("hidden", !supportsBeans);
-}
-
-function syncGroupBeansAvailability() {
-  if (!els.groupBeansCheckbox || !els.groupBurritoSelect) return;
-  const option = els.groupBeansCheckbox.closest(".group-extra-option");
-  const supportsBeans = itemSupportsBeans(els.groupBurritoSelect.value);
-  if (!supportsBeans) els.groupBeansCheckbox.checked = false;
-  if (option) option.classList.toggle("hidden", !supportsBeans);
 }
 
 function openCart() {

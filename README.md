@@ -174,9 +174,3 @@ The customer receipt is sent to the email entered during checkout.
 - Applied deep navy and gold visual theme based on the original local project.
 - Preserved current RC ordering flow and EmailJS two-template setup.
 - Kept modern homepage/mobile experience while matching Mama Lu's navy/gold brand direction.
-
-
-## RC7.18
-- Restored Add Person / Add Another Person visibility in Office & Group Orders.
-- Hid Add Beans for Bean & Cheese in regular and group orders.
-- Added a guard so Bean & Cheese cannot accidentally receive the beans extra.

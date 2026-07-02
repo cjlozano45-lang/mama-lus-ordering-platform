@@ -167,8 +167,9 @@
 - Confirm kitchen tickets arrive at mamalusorders@gmail.com.
 - Confirm customer receipts arrive at the customer email entered during checkout.
 
-
-## RC7.18
-- Restored Add Person / Add Another Person visibility in Office & Group Orders.
-- Hid Add Beans for Bean & Cheese in regular and group orders.
-- Added a guard so Bean & Cheese cannot accidentally receive the beans extra.
+## RC7.20 - Real Group Order Rollback
+- Restored the earlier group-order builder behavior.
+- Added explicit Cancel Group Order button.
+- Fixed group modal X and backdrop close behavior.
+- Hid Add Beans for Bean & Cheese in regular and group ordering.
+- Added code safeguard so Bean & Cheese cannot receive the beans extra.
