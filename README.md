@@ -109,5 +109,11 @@ Codename: **Sunrise**
 - In Office & Group Orders, **Edit** now changes the button to **Save Person** and keeps the original entry until saved.
 
 
-## RC7.1 testing notes
+## RC7.2 testing notes
 Test the homepage on mobile first. Confirm that the logo is the focal point, both ordering buttons are visible near the top, Quick Add works with one tap, and the sticky cart bar appears after adding an item.
+
+
+## RC7.2 Notes
+- Phone fields now auto-populate the 915 area code for faster local orders.
+- EmailJS remains connected.
+- Group orders and regular orders remain enabled.

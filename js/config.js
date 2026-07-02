@@ -3,6 +3,7 @@ const SETTINGS = {
   pageTitle: "Mama Lu's | Breakfast Burritos",
   phone: "(915) 642-7291",
   phoneHref: "+19156427291",
+  defaultAreaCode: "915",
   orderEmail: "c.j.lozano88@gmail.com",
 
   acceptingOrders: true,

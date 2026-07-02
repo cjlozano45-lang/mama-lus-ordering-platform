@@ -105,8 +105,12 @@ function bindEvents() {
   els.decreaseQty.addEventListener("click", () => setModalQty(state.selectedQty - 1));
   els.increaseQty.addEventListener("click", () => setModalQty(state.selectedQty + 1));
   els.addToCartButton.addEventListener("click", addSelectedToCart);
+  initializePhoneField(els.customerPhone);
+  initializePhoneField(els.cateringPhone);
   els.customerPhone.addEventListener("input", (event) => event.target.value = formatPhone(event.target.value));
   els.cateringPhone.addEventListener("input", (event) => event.target.value = formatPhone(event.target.value));
+  els.customerPhone.addEventListener("focus", () => ensureAreaCode(els.customerPhone));
+  els.cateringPhone.addEventListener("focus", () => ensureAreaCode(els.cateringPhone));
   els.groupPersonName.addEventListener("input", clearGroupNameRequired);
   els.customerForm.addEventListener("submit", handleReviewOrder);
   els.submitOrderButton.addEventListener("click", submitReviewedOrder);
@@ -703,13 +707,30 @@ function closeCart() {
   els.drawerBackdrop.classList.add("hidden");
 }
 
+function initializePhoneField(input) {
+  if (!input) return;
+  if (!input.value.trim()) input.value = `(${SETTINGS.defaultAreaCode}) `;
+}
+
+function ensureAreaCode(input) {
+  if (!input) return;
+  if (!input.value.replace(/\D/g, "")) {
+    input.value = `(${SETTINGS.defaultAreaCode}) `;
+  }
+}
+
 function formatPhone(value) {
-  const digits = value.replace(/\D/g, "").slice(0, 10);
+  let digits = value.replace(/\D/g, "").slice(0, 10);
+  const defaultArea = SETTINGS.defaultAreaCode || "915";
+
+  if (!digits) digits = defaultArea;
+
   const a = digits.slice(0, 3);
   const b = digits.slice(3, 6);
   const c = digits.slice(6, 10);
   if (digits.length > 6) return `(${a}) ${b}-${c}`;
   if (digits.length > 3) return `(${a}) ${b}`;
+  if (digits.length === 3) return `(${a}) `;
   if (digits.length > 0) return `(${a}`;
   return "";
 }

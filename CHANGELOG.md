@@ -70,3 +70,9 @@
 - Made Quick Add the first menu action and kept Customize as the secondary action.
 - Added a mobile sticky cart bar that appears only after items are added.
 - Preserved EmailJS, regular orders, and Office & Group Orders.
+
+
+## RC7.2 - Area Code Autofill
+- Added configurable default area code support.
+- Regular checkout and Office & Group Order organizer phone fields now start with (915).
+- Preserved RC7.1 mobile/homepage updates.
