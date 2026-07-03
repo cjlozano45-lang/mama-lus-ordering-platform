@@ -1,257 +1,894 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mama Lu's | Breakfast Burritos</title>
-  <meta name="description" content="Mama Lu's breakfast burritos. Order online for pickup." />
-  <meta name="theme-color" content="#041E42" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
-  <div class="app-shell">
-    <header class="site-header site-header-minimal" aria-label="Mama Lu's header"></header>
+const state = {
+  cart: loadCart(),
+  selectedItem: null,
+  selectedQty: 1,
+  orderCounter: Number(localStorage.getItem("ml_order_counter")) || SETTINGS.orderNumberStart,
+  cateringCounter: Number(localStorage.getItem("ml_catering_counter")) || SETTINGS.cateringNumberStart,
+  lastSubmittedOrder: null,
+  pendingReviewOrder: null,
+  pendingReviewType: "regular",
+  editingGroupUid: null,
+  cateringItems: loadCateringItems()
+};
 
-    <main>
-      <section class="hero hero-identity section-panel" id="home">
-        <div class="hero-content hero-content-identity">
-          <img id="siteLogo" class="hero-logo" src="images/logo.png" alt="Mama Lu's" />
-          <h1 class="sr-only">Mama Lu's</h1>
-          <h2>Made Fresh Every Morning</h2>
-          <div class="hero-actions hero-actions-stacked">
-            <a class="button button-primary button-hero" href="#menu">🌯 Start Order</a>
-            <button id="openCateringHero" class="button button-secondary button-hero" type="button">👥 Office &amp; Group Orders</button>
-            <a id="callButton" class="button button-secondary hidden" href="tel:+19156427291">Call Now</a>
-            <a id="textButton" class="button button-secondary hidden" href="sms:+19156427291">Text Us</a>
-          </div>
+const els = {};
+
+document.addEventListener("DOMContentLoaded", () => {
+  cacheElements();
+  hydrateSettings();
+  renderMenu();
+  renderBeverages();
+  renderGroupBurritoOptions();
+  renderGroupOrderList();
+  renderCart();
+  bindEvents();
+});
+
+function cacheElements() {
+  Object.assign(els, {
+    menuGrid: document.getElementById("menuGrid"),
+    beverageSection: document.getElementById("beverageSection"),
+    beverageGrid: document.getElementById("beverageGrid"),
+    cateringSection: document.getElementById("cateringSection"),
+    callButton: document.getElementById("callButton"),
+    textButton: document.getElementById("textButton"),
+    statusMessage: document.getElementById("statusMessage"),
+    stickyCartBar: document.getElementById("stickyCartBar"),
+    stickyCartSummary: document.getElementById("stickyCartSummary"),
+    stickyCartTotal: document.getElementById("stickyCartTotal"),
+    cartFab: document.getElementById("cartFab"),
+    cartFabCount: document.getElementById("cartFabCount"),
+    cartDrawer: document.getElementById("cartDrawer"),
+    drawerBackdrop: document.getElementById("drawerBackdrop"),
+    closeCart: document.getElementById("closeCart"),
+    cartItems: document.getElementById("cartItems"),
+    cartSubtotal: document.getElementById("cartSubtotal"),
+    cartTax: document.getElementById("cartTax"),
+    cartTotal: document.getElementById("cartTotal"),
+    taxLine: document.getElementById("taxLine"),
+    clearCartButton: document.getElementById("clearCartButton"),
+    cartCheckoutButton: document.getElementById("cartCheckoutButton"),
+    checkoutSection: document.getElementById("checkout"),
+    customizeModal: document.getElementById("customizeModal"),
+    modalItemName: document.getElementById("modalItemName"),
+    modalItemDescription: document.getElementById("modalItemDescription"),
+    modalQty: document.getElementById("modalQty"),
+    decreaseQty: document.getElementById("decreaseQty"),
+    increaseQty: document.getElementById("increaseQty"),
+    beansCheckbox: document.getElementById("beansCheckbox"),
+    addToCartButton: document.getElementById("addToCartButton"),
+    customerForm: document.getElementById("customerForm"),
+    customerName: document.getElementById("customerName"),
+    customerPhone: document.getElementById("customerPhone"),
+    customerEmail: document.getElementById("customerEmail"),
+    specialInstructions: document.getElementById("specialInstructions"),
+    reviewModal: document.getElementById("reviewModal"),
+    reviewContent: document.getElementById("reviewContent"),
+    submitOrderButton: document.getElementById("submitOrderButton"),
+    confirmationModal: document.getElementById("confirmationModal"),
+    confirmationOrderNumber: document.getElementById("confirmationOrderNumber"),
+    newOrderButton: document.getElementById("newOrderButton"),
+    openCatering: document.getElementById("openCatering"),
+    openCateringHero: document.getElementById("openCateringHero"),
+    cateringModal: document.getElementById("cateringModal"),
+    cateringPhone: document.getElementById("cateringPhone"),
+    cateringEmail: document.getElementById("cateringEmail"),
+    groupPersonName: document.getElementById("groupPersonName"),
+    groupPersonNameHint: document.getElementById("groupPersonNameHint"),
+    groupBurritoSelect: document.getElementById("groupBurritoSelect"),
+    groupBeansCheckbox: document.getElementById("groupBeansCheckbox"),
+    groupBeansOption: document.getElementById("groupBeansOption"),
+    groupOrderStats: document.getElementById("groupOrderStats"),
+    addGroupPersonButton: document.getElementById("addGroupPersonButton"),
+    groupOrderList: document.getElementById("groupOrderList"),
+    submitCateringButton: document.getElementById("submitCateringButton"),
+    cancelCateringButton: document.getElementById("cancelCateringButton")
+  });
+}
+
+function hydrateSettings() {
+  document.title = SETTINGS.pageTitle;
+  document.getElementById("footerPhone").textContent = SETTINGS.phone;
+  els.callButton.href = `tel:${SETTINGS.phoneHref}`;
+  els.textButton.href = `sms:${SETTINGS.phoneHref}`;
+  toggle(els.callButton, SETTINGS.callButtonEnabled);
+  toggle(els.textButton, SETTINGS.textButtonEnabled);
+  toggle(els.cateringSection, false);
+  toggle(els.openCateringHero, SETTINGS.cateringEnabled);
+  if (!SETTINGS.acceptingOrders) showStatus("Online ordering is currently unavailable. Please check back later.");
+  if (SETTINGS.debugMode) console.log("Project Sunrise settings", SETTINGS);
+}
+
+function bindEvents() {
+  els.cartFab.addEventListener("click", openCart);
+  if (els.stickyCartBar) els.stickyCartBar.addEventListener("click", openCart);
+  els.closeCart.addEventListener("click", closeCart);
+  els.drawerBackdrop.addEventListener("click", closeCart);
+  els.clearCartButton.addEventListener("click", clearCart);
+  els.cartCheckoutButton.addEventListener("click", goToCheckout);
+  els.decreaseQty.addEventListener("click", () => setModalQty(state.selectedQty - 1));
+  els.increaseQty.addEventListener("click", () => setModalQty(state.selectedQty + 1));
+  els.addToCartButton.addEventListener("click", addSelectedToCart);
+  initializePhoneField(els.customerPhone);
+  initializePhoneField(els.cateringPhone);
+  els.customerPhone.addEventListener("input", (event) => event.target.value = formatPhone(event.target.value));
+  els.cateringPhone.addEventListener("input", (event) => event.target.value = formatPhone(event.target.value));
+  els.customerPhone.addEventListener("focus", () => ensureAreaCode(els.customerPhone));
+  els.cateringPhone.addEventListener("focus", () => ensureAreaCode(els.cateringPhone));
+  els.groupPersonName.addEventListener("input", clearGroupNameRequired);
+  els.groupPersonName.addEventListener("keydown", handleGroupNameKeydown);
+  if (els.cateringModal) {
+    els.cateringModal.addEventListener("keydown", preventCateringEnterSubmit);
+    const cateringForm = els.cateringModal.querySelector("form");
+    if (cateringForm) cateringForm.addEventListener("submit", (event) => event.preventDefault());
+    const cateringCloseButton = els.cateringModal.querySelector(".modal-close");
+    if (cateringCloseButton) {
+      cateringCloseButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        closeGroupOrderAndReturnToMenu();
+      });
+    }
+  }
+  els.customerForm.addEventListener("submit", handleReviewOrder);
+  els.submitOrderButton.addEventListener("click", submitReviewedOrder);
+  els.newOrderButton.addEventListener("click", resetOrder);
+  if (els.openCatering) els.openCatering.addEventListener("click", openGroupOrder);
+  if (els.openCateringHero) els.openCateringHero.addEventListener("click", openGroupOrder);
+  if (els.cateringModal) els.cateringModal.addEventListener("click", handleCateringBackdropClick);
+  if (els.cancelCateringButton) els.cancelCateringButton.addEventListener("click", closeGroupOrderAndReturnToMenu);
+  els.groupBurritoSelect.addEventListener("change", updateGroupBeansVisibility);
+  els.addGroupPersonButton.addEventListener("click", addGroupPersonOrder);
+  els.submitCateringButton.addEventListener("click", (event) => { event.preventDefault(); reviewCateringOrder(); });
+}
+
+
+function openGroupOrder() {
+  if (!SETTINGS.cateringEnabled) return;
+  els.cateringModal.showModal();
+  updateGroupBeansVisibility();
+  setTimeout(() => els.groupPersonName.focus({ preventScroll: true }), 100);
+}
+
+function handleCateringBackdropClick(event) {
+  if (event.target === els.cateringModal) closeGroupOrderAndReturnToMenu();
+}
+
+function closeGroupOrderAndReturnToMenu() {
+  if (els.cateringModal && els.cateringModal.open) els.cateringModal.close();
+  const menu = document.getElementById("menu");
+  if (menu) menu.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function isBeanAndCheese(itemId) {
+  return itemId === "bean-cheese";
+}
+
+function updateGroupBeansVisibility() {
+  const selectedId = els.groupBurritoSelect ? els.groupBurritoSelect.value : "";
+  const hideBeans = isBeanAndCheese(selectedId);
+  if (els.groupBeansOption) els.groupBeansOption.classList.toggle("hidden", hideBeans);
+  if (hideBeans && els.groupBeansCheckbox) els.groupBeansCheckbox.checked = false;
+}
+
+function updateCustomizerBeansVisibility(item) {
+  const hideBeans = item && isBeanAndCheese(item.id);
+  const beansOption = els.beansCheckbox ? els.beansCheckbox.closest(".extra-option") : null;
+  if (beansOption) beansOption.classList.toggle("hidden", hideBeans);
+  if (hideBeans && els.beansCheckbox) els.beansCheckbox.checked = false;
+}
+
+function goToCheckout(event) {
+  event.preventDefault();
+  if (!state.cart.length) {
+    return showStatus("Please add at least one item before checking out.");
+  }
+  closeCart();
+  els.checkoutSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => els.customerName.focus({ preventScroll: true }), 450);
+}
+
+function renderMenu() {
+  const category = MENU.categories.find(cat => cat.id === "breakfast-burritos");
+  els.menuGrid.innerHTML = category.items
+    .filter(item => item.enabled)
+    .map(item => `
+      <article class="menu-card ${item.soldOut ? "sold-out" : ""}" data-item-id="${item.id}" tabindex="${item.soldOut ? "-1" : "0"}" role="button" aria-label="Customize ${item.name}">
+        <div class="food-icon" aria-hidden="true">🌯</div>
+        <div class="card-body">
+          <h3>${item.name}</h3>
+          <p>${item.description}</p>
         </div>
-      </section>
-
-      <section id="statusMessage" class="status-message hidden" role="status"></section>
-
-      <section id="menu" class="menu-section">
-        <div class="section-heading">
-          <p class="eyebrow">Order Online</p>
-          <h2>Breakfast Burritos</h2>
-          <p>Select a burrito, choose your extras, and add it to your order.</p>
+        <div class="card-footer menu-card-actions">
+          <strong>${formatMenuPrice(item.price)}</strong>
+          ${item.soldOut ? `<span class="button button-small button-disabled" aria-hidden="true">Sold Out</span>` : `
+            <div class="menu-action-buttons">
+              <button class="button button-small button-primary quick-add-action" type="button" data-quick-add="${item.id}" aria-label="Quick add ${item.name}">Quick Add</button>
+              <button class="button button-small button-secondary customize-action" type="button" data-customize-item="${item.id}" aria-label="Customize ${item.name}">Customize</button>
+            </div>
+          `}
         </div>
-        <div id="menuGrid" class="menu-grid"></div>
-      </section>
+      </article>
+    `).join("");
 
-      <section id="beverageSection" class="menu-section hidden">
-        <div class="section-heading">
-          <p class="eyebrow">Test Preview</p>
-          <h2>Beverages</h2>
-          <p>Previewing beverage layout for future launch.</p>
+  els.menuGrid.querySelectorAll(".menu-card:not(.sold-out)").forEach(card => {
+    card.addEventListener("click", (event) => {
+      if (event.target.closest("button")) return;
+      openCustomizer(card.dataset.itemId);
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openCustomizer(card.dataset.itemId);
+      }
+    });
+  });
+
+  els.menuGrid.querySelectorAll("[data-customize-item]").forEach(button => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openCustomizer(button.dataset.customizeItem);
+    });
+  });
+
+  els.menuGrid.querySelectorAll("[data-quick-add]").forEach(button => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      quickAddItem(button.dataset.quickAdd);
+    });
+  });
+}
+
+function renderBeverages() {
+  toggle(els.beverageSection, SETTINGS.beveragesEnabled);
+  if (!SETTINGS.beveragesEnabled) return;
+  els.beverageGrid.innerHTML = MENU.beverages
+    .filter(item => item.enabled)
+    .map(item => `
+      <article class="menu-card beverage-card" data-beverage-id="${item.id}">
+        <div class="food-icon" aria-hidden="true">🥤</div>
+        <h3>${item.name}</h3>
+        <p>${item.category}</p>
+        <div class="card-footer"><strong>${formatMoney(item.price)}</strong><button class="button button-small button-secondary" type="button" data-add-beverage="${item.id}">Add Drink</button></div>
+      </article>
+    `).join("");
+
+  els.beverageGrid.querySelectorAll("[data-add-beverage]").forEach(button => {
+    button.addEventListener("click", () => quickAddBeverage(button.dataset.addBeverage));
+  });
+}
+
+function renderGroupBurritoOptions() {
+  if (!els.groupBurritoSelect) return;
+  const burritos = MENU.categories
+    .find(category => category.id === "breakfast-burritos")
+    .items
+    .filter(item => item.enabled && !item.soldOut);
+
+  els.groupBurritoSelect.innerHTML = `<option value="">Select a burrito</option>` + burritos.map(item =>
+    `<option value="${item.id}">${item.name} - ${formatMenuPrice(item.price)}</option>`
+  ).join("");
+}
+
+function addGroupPersonOrder() {
+  const personName = els.groupPersonName.value.trim();
+  const burritoId = els.groupBurritoSelect.value;
+  const item = findMenuItem(burritoId);
+  if (!personName) {
+    markGroupNameRequired();
+    return showStatus("Please enter the person's name for this group order.");
+  }
+  if (!item) return showStatus("Please choose a burrito for this person.");
+
+  const beans = !isBeanAndCheese(item.id) && els.groupBeansCheckbox.checked;
+  const orderEntry = {
+    uid: state.editingGroupUid || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())),
+    personName,
+    type: "burrito",
+    id: item.id,
+    name: item.name,
+    basePrice: item.price,
+    extras: beans ? [{ id: "beans", name: "Beans", price: 0.25 }] : [],
+    price: item.price + (beans ? 0.25 : 0)
+  };
+
+  if (state.editingGroupUid) {
+    state.cateringItems = state.cateringItems.map(existing => existing.uid === state.editingGroupUid ? orderEntry : existing);
+    state.editingGroupUid = null;
+    showStatus(`${personName}'s order was updated.`);
+  } else {
+    state.cateringItems.push(orderEntry);
+    showStatus(`${personName} added to the group order.`);
+  }
+
+  saveCateringItems();
+
+  els.groupPersonName.value = "";
+  els.groupBurritoSelect.value = "";
+  els.groupBeansCheckbox.checked = false;
+  updateGroupBeansVisibility();
+  renderGroupOrderList();
+  els.groupPersonName.focus();
+}
+
+function renderGroupOrderList() {
+  if (!els.groupOrderList) return;
+  const groupTotal = state.cateringItems.reduce((sum, item) => sum + item.price, 0);
+  if (els.addGroupPersonButton) {
+    els.addGroupPersonButton.textContent = state.editingGroupUid ? "Save Person" : (state.cateringItems.length ? "Add Another Person" : "Add Person");
+  }
+
+  if (els.groupOrderStats) {
+    if (!state.cateringItems.length) {
+      els.groupOrderStats.innerHTML = `<span>Let's build your group order.</span><strong>Start by adding the first person below.</strong>`;
+    } else {
+      els.groupOrderStats.innerHTML = `<span>People Added: ${state.cateringItems.length}</span><strong>Total: ${formatMoney(groupTotal)}</strong>`;
+    }
+  }
+
+  if (!state.cateringItems.length) {
+    els.groupOrderList.innerHTML = `<div class="empty-cart"><strong>No individual orders added yet.</strong><p>Add the first person's name and burrito to start the group order.</p></div>`;
+    return;
+  }
+
+  els.groupOrderList.innerHTML = `
+    <div class="group-order-list-heading">
+      <strong>Office & Group Orders</strong>
+      <span>${state.cateringItems.length} burrito${state.cateringItems.length === 1 ? "" : "s"}</span>
+    </div>
+    ${state.cateringItems.map(item => `
+      <div class="group-order-item ${state.editingGroupUid === item.uid ? "editing" : ""}">
+        <div>
+          <strong>✓ ${escapeHtml(item.personName)}</strong>
+          <small>${escapeHtml(item.name)}${item.extras.length ? " + Beans" : ""}</small>
         </div>
-        <div id="beverageGrid" class="menu-grid compact"></div>
-      </section>
-
-      <section id="cateringSection" class="catering-section section-panel hidden" aria-hidden="true">
-        <button id="openCatering" class="button button-secondary" type="button">Open Office & Group Order</button>
-      </section>
-
-      <section id="checkout" class="checkout-section section-panel">
-        <div class="section-heading left">
-          <p class="eyebrow">Your Information</p>
-          <h2>Almost Done</h2>
-          <p>We will only use your phone number if we need to contact you about your order.</p>
+        <strong>${formatMoney(item.price)}</strong>
+        <div class="group-actions">
+          <button type="button" data-edit-name="${item.uid}">Edit Name</button>
+          <button type="button" data-edit-group="${item.uid}">Edit Burrito</button>
+          <button type="button" data-duplicate-group="${item.uid}">Duplicate</button>
+          <button type="button" data-remove-group="${item.uid}">Remove</button>
         </div>
-        <form id="customerForm" novalidate>
-          <div class="form-grid">
-            <label class="field-label field-wide">Full Name
-              <input id="customerName" type="text" autocomplete="name" placeholder="Full Name" required />
-            </label>
-            <label class="field-label">Phone Number
-              <input id="customerPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(915) 555-1234" required />
-            </label>
-            <label class="field-label">Email Address
-              <input id="customerEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
-              <small class="receipt-hint">We'll only use this to send a copy of your order.</small>
-            </label>
-          </div>
+      </div>
+    `).join("")}
+  `;
 
-          <fieldset class="contact-preference">
-            <legend>How would you like to be contacted?</legend>
-            <label class="pill-radio"><input type="radio" name="contactPreference" value="Text" checked /> Text</label>
-            <label class="pill-radio"><input type="radio" name="contactPreference" value="Call" /> Call</label>
-          </fieldset>
+  els.groupOrderList.querySelectorAll("[data-remove-group]").forEach(button => {
+    button.addEventListener("click", () => {
+      state.cateringItems = state.cateringItems.filter(item => item.uid !== button.dataset.removeGroup);
+      saveCateringItems();
+      renderGroupOrderList();
+    });
+  });
 
-          <label class="field-label">Anything else you'd like us to know? <span>(optional)</span>
-            <textarea id="specialInstructions" maxlength="250" placeholder="No onions, extra salsa, please text when ready..."></textarea>
-          </label>
+  els.groupOrderList.querySelectorAll("[data-duplicate-group]").forEach(button => {
+    button.addEventListener("click", () => {
+      const item = state.cateringItems.find(entry => entry.uid === button.dataset.duplicateGroup);
+      if (!item) return;
 
-          <div class="form-actions">
-            <button id="reviewOrderButton" class="button button-primary" type="submit">Review Order</button>
-          </div>
-        </form>
-      </section>
-    </main>
+      const duplicateName = els.groupPersonName.value.trim();
+      els.groupBurritoSelect.value = item.id;
+      els.groupBeansCheckbox.checked = !isBeanAndCheese(item.id) && item.extras.some(extra => extra.id === "beans");
+      updateGroupBeansVisibility();
 
-    <footer class="site-footer">
-      <strong>Mama Lu's</strong>
-      <span>Breakfast Burritos</span>
-      <span id="footerPhone">(915) 642-7291</span>
-      <span>© 2026 Mama Lu's</span>
-    </footer>
-  </div>
+      if (!duplicateName) {
+        markGroupNameRequired();
+        els.groupPersonName.scrollIntoView({ behavior: "smooth", block: "center" });
+        els.groupPersonName.focus();
+        showStatus("Enter the next name, then tap Duplicate again to add the same burrito.");
+        return;
+      }
 
-  <button id="stickyCartBar" class="sticky-cart-bar hidden" type="button" aria-label="View breakfast order">
-    <span id="stickyCartSummary">🛒 0 Items</span>
-    <strong id="stickyCartTotal">$0.00</strong>
-    <span>View Order →</span>
-  </button>
+      clearGroupNameRequired();
+      state.cateringItems.push({
+        uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        personName: duplicateName,
+        type: item.type,
+        id: item.id,
+        name: item.name,
+        basePrice: item.basePrice,
+        extras: isBeanAndCheese(item.id) ? [] : item.extras.map(extra => ({ ...extra })),
+        price: isBeanAndCheese(item.id) ? item.basePrice : item.price
+      });
+      saveCateringItems();
+      els.groupPersonName.value = "";
+      els.groupBurritoSelect.value = "";
+      els.groupBeansCheckbox.checked = false;
+      renderGroupOrderList();
+      els.groupPersonName.focus();
+      showStatus(`Duplicated order added for ${duplicateName}.`);
+    });
+  });
 
-  <button id="cartFab" class="cart-fab" type="button" aria-label="Open order cart">
-    <span>🛒</span>
-    <strong id="cartFabCount">0</strong>
-  </button>
 
-  <aside id="cartDrawer" class="cart-drawer" aria-label="Order cart" aria-hidden="true">
-    <div class="drawer-header">
+  els.groupOrderList.querySelectorAll("[data-edit-name]").forEach(button => {
+    button.addEventListener("click", () => {
+      const item = state.cateringItems.find(entry => entry.uid === button.dataset.editName);
+      if (!item) return;
+      const updatedName = window.prompt("Update name", item.personName);
+      if (updatedName === null) return;
+      const cleanName = updatedName.trim();
+      if (!cleanName) {
+        showStatus("Name is required for this person.");
+        return;
+      }
+      item.personName = cleanName;
+      saveCateringItems();
+      renderGroupOrderList();
+      showStatus(`Name updated to ${cleanName}.`);
+    });
+  });
+
+  els.groupOrderList.querySelectorAll("[data-edit-group]").forEach(button => {
+    button.addEventListener("click", () => {
+      const item = state.cateringItems.find(entry => entry.uid === button.dataset.editGroup);
+      if (!item) return;
+      state.editingGroupUid = item.uid;
+      els.groupPersonName.value = item.personName;
+      els.groupBurritoSelect.value = item.id;
+      els.groupBeansCheckbox.checked = false;
+      updateGroupBeansVisibility();
+      renderGroupOrderList();
+      els.groupBurritoSelect.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => {
+        els.groupBurritoSelect.focus();
+        try { els.groupBurritoSelect.click(); } catch (error) { /* Some browsers block programmatic select opening. */ }
+      }, 250);
+      showStatus("Choose a new burrito, then tap Save Person.");
+    });
+  });
+}
+
+
+function handleGroupNameKeydown(event) {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  if (els.groupBurritoSelect) els.groupBurritoSelect.focus();
+}
+
+function preventCateringEnterSubmit(event) {
+  if (event.key !== "Enter") return;
+  const tag = event.target.tagName;
+  const type = event.target.getAttribute("type");
+  if (tag === "TEXTAREA") return;
+  if (tag === "BUTTON" || type === "button" || type === "submit") return;
+  event.preventDefault();
+}
+
+function markGroupNameRequired() {
+  els.groupPersonName.classList.add("field-error");
+  if (els.groupPersonNameHint) els.groupPersonNameHint.classList.remove("hidden");
+}
+
+function clearGroupNameRequired() {
+  els.groupPersonName.classList.remove("field-error");
+  if (els.groupPersonNameHint) els.groupPersonNameHint.classList.add("hidden");
+}
+
+function quickAddItem(itemId) {
+  if (!SETTINGS.acceptingOrders) return showStatus("Online ordering is currently unavailable.");
+  const item = findMenuItem(itemId);
+  if (!item || item.soldOut) return;
+  state.cart.push({
+    uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    type: "burrito",
+    id: item.id,
+    name: item.name,
+    basePrice: item.price,
+    extras: [],
+    price: item.price
+  });
+  saveCart();
+  renderCart();
+  els.cartFab.classList.remove("cart-pulse");
+  void els.cartFab.offsetWidth;
+  els.cartFab.classList.add("cart-pulse");
+  showStatus(`✓ ${item.name} added to your order.`);
+}
+
+function quickAddBeverage(beverageId) {
+  if (!SETTINGS.acceptingOrders) return showStatus("Online ordering is currently unavailable.");
+  const item = MENU.beverages.find(beverage => beverage.id === beverageId && beverage.enabled);
+  if (!item) return;
+
+  state.cart.push({
+    uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    type: "beverage",
+    id: item.id,
+    name: item.name,
+    basePrice: item.price,
+    extras: [],
+    price: item.price
+  });
+
+  saveCart();
+  renderCart();
+  els.cartFab.classList.remove("cart-pulse");
+  void els.cartFab.offsetWidth;
+  els.cartFab.classList.add("cart-pulse");
+  showStatus(`✓ ${item.name} added to your order.`);
+}
+
+function openCustomizer(itemId) {
+  if (!SETTINGS.acceptingOrders) return showStatus("Online ordering is currently unavailable.");
+  const item = findMenuItem(itemId);
+  if (!item || item.soldOut) return;
+  state.selectedItem = item;
+  state.selectedQty = 1;
+  els.modalItemName.textContent = item.name;
+  els.modalItemDescription.textContent = item.description;
+  els.beansCheckbox.checked = false;
+  updateCustomizerBeansVisibility(item);
+  setModalQty(1);
+  els.customizeModal.showModal();
+}
+
+function setModalQty(qty) {
+  state.selectedQty = Math.max(1, Math.min(SETTINGS.cateringLimit, qty));
+  els.modalQty.textContent = state.selectedQty;
+}
+
+function addSelectedToCart() {
+  if (!state.selectedItem) return;
+  const beans = !isBeanAndCheese(state.selectedItem.id) && els.beansCheckbox.checked;
+  for (let i = 0; i < state.selectedQty; i++) {
+    state.cart.push({
+      uid: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+      type: "burrito",
+      id: state.selectedItem.id,
+      name: state.selectedItem.name,
+      basePrice: state.selectedItem.price,
+      extras: beans ? [{ id: "beans", name: "Beans", price: 0.25 }] : [],
+      price: state.selectedItem.price + (beans ? 0.25 : 0)
+    });
+  }
+  saveCart();
+  renderCart();
+  els.customizeModal.close();
+  const addedName = state.selectedItem.name;
+  state.selectedItem = null;
+  showStatus(`✓ ${addedName} added to your order.`);
+  if (getBurritoCount() >= SETTINGS.cateringThreshold) showStatus("Large order detected. For 25 burritos or more, Office & Group Orders may be easier.");
+}
+
+function renderCart() {
+  const totals = calculateTotals();
+  els.cartFabCount.textContent = state.cart.length;
+  if (els.stickyCartBar) {
+    const itemLabel = `${state.cart.length} Item${state.cart.length === 1 ? "" : "s"}`;
+    els.stickyCartSummary.textContent = `🛒 ${itemLabel}`;
+    els.stickyCartTotal.textContent = formatMoney(totals.total);
+    els.stickyCartBar.classList.toggle("hidden", state.cart.length === 0);
+    document.body.classList.toggle("has-sticky-cart", state.cart.length > 0);
+  }
+  els.cartSubtotal.textContent = formatMoney(totals.subtotal);
+  els.cartTax.textContent = formatMoney(totals.tax);
+  els.cartTotal.textContent = formatMoney(totals.total);
+  toggle(els.taxLine, SETTINGS.taxEnabled);
+
+  if (!state.cart.length) {
+    els.cartItems.innerHTML = `<div class="empty-cart"><strong>Your order is empty.</strong><p>Choose your favorite breakfast burrito to get started.</p></div>`;
+    return;
+  }
+
+  els.cartItems.innerHTML = state.cart.map(item => `
+    <div class="cart-item">
       <div>
-        <p class="eyebrow">Your Order</p>
-        <h2>Breakfast Order</h2>
+        <strong>1 × ${item.name}</strong>
+        ${item.extras.map(extra => `<small>+ ${extra.name}</small>`).join("")}
       </div>
-      <button id="closeCart" class="icon-button" type="button" aria-label="Close cart">×</button>
+      <div class="cart-item-actions">
+        <span>${formatMoney(item.price)}</span>
+        <button type="button" data-remove="${item.uid}">Remove</button>
+      </div>
     </div>
-    <div id="cartItems" class="cart-items"></div>
-    <div class="cart-totals">
-      <div><span>Subtotal</span><strong id="cartSubtotal">$0.00</strong></div>
-      <div id="taxLine" class="hidden"><span>Tax</span><strong id="cartTax">$0.00</strong></div>
-      <div class="grand-total"><span>Total</span><strong id="cartTotal">$0.00</strong></div>
-    </div>
-    <p class="cart-reassurance">Your order is not sent until you review it and press Send Order.</p>
-    <div class="cart-actions">
-      <button class="button button-secondary full" type="button" id="clearCartButton">Clear All</button>
-      <a class="button button-primary full" href="#checkout" id="cartCheckoutButton">Continue</a>
-    </div>
-  </aside>
-  <div id="drawerBackdrop" class="backdrop hidden"></div>
+  `).join("");
 
-  <dialog id="customizeModal" class="modal">
-    <form method="dialog" class="modal-card">
-      <button class="icon-button modal-close" type="button" value="cancel" aria-label="Close">×</button>
-      <p class="eyebrow">Customize</p>
-      <h2 id="modalItemName">Burrito</h2>
-      <p id="modalItemDescription" class="muted"></p>
+  els.cartItems.querySelectorAll("[data-remove]").forEach(button => {
+    button.addEventListener("click", () => removeCartItem(button.dataset.remove));
+  });
+}
 
-      <div class="modal-section">
-        <h3>Quantity</h3>
-        <div class="quantity-control">
-          <button id="decreaseQty" type="button">−</button>
-          <strong id="modalQty">1</strong>
-          <button id="increaseQty" type="button">+</button>
-        </div>
-      </div>
+function removeCartItem(uid) {
+  state.cart = state.cart.filter(item => item.uid !== uid);
+  saveCart();
+  renderCart();
+}
 
-      <div class="modal-section">
-        <h3>Extras</h3>
-        <label class="extra-option">
-          <input id="beansCheckbox" type="checkbox" />
-          <span class="custom-checkbox" aria-hidden="true"></span>
-          <span class="extra-copy">
-            <strong>Add Beans</strong>
-            <small>+$0.25 per burrito</small>
-          </span>
-        </label>
-        <div id="futureExtras" class="future-extras hidden"></div>
-      </div>
+function clearCart() {
+  if (!state.cart.length) {
+    return showStatus("Your breakfast order is already empty.");
+  }
 
-      <button id="addToCartButton" class="button button-primary full" type="button">Add to Order</button>
-    </form>
-  </dialog>
+  const shouldClear = window.confirm("Clear your entire breakfast order and start over?");
+  if (!shouldClear) return;
 
-  <dialog id="reviewModal" class="modal wide">
-    <form method="dialog" class="modal-card">
-      <button class="icon-button modal-close" type="button" value="cancel" aria-label="Close">×</button>
-      <p class="eyebrow">Step 3</p>
-      <h2>Review Your Order</h2>
-      <div id="reviewContent" class="review-content"></div>
-      <p id="reviewError" class="review-error hidden" role="alert"></p>
-      <p class="review-note">Please review your order before sending.</p>
-      <div class="review-actions">
-        <button class="button button-secondary" value="cancel">Back</button>
-        <button id="submitOrderButton" class="button button-primary" type="button">Send Order</button>
-      </div>
-    </form>
-  </dialog>
+  state.cart = [];
+  saveCart();
+  renderCart();
+  showStatus("Your breakfast order has been cleared.");
+}
 
-  <dialog id="confirmationModal" class="modal">
-    <div class="modal-card confirmation-card">
-      <div class="success-mark">✓</div>
-      <h2>Order Received!</h2>
-      <p>Thank you for choosing Mama Lu's. Your order has been sent.</p>
-      <div class="confirmation-order"><span>Order Number</span><strong id="confirmationOrderNumber">ML-1001</strong></div>
-      <p>We will contact you if we have any questions regarding your order.</p>
-      <p class="muted">For immediate assistance, please call or text <strong>(915) 642-7291</strong>.</p>
-      <button id="newOrderButton" class="button button-primary full" type="button">Start New Order</button>
-    </div>
-  </dialog>
 
-  <dialog id="cateringModal" class="modal wide">
-    <form method="dialog" class="modal-card catering-card">
-      <button class="icon-button modal-close" type="button" value="cancel" aria-label="Close">×</button>
-      <p class="eyebrow">Large Orders</p>
-      <h2>Office &amp; Group Orders</h2>
-      <p class="muted">Tip: use Duplicate when several people want the same burrito.</p>
-      <div class="form-grid group-contact-grid">
-        <label class="field-label">Company / Group Name<input id="cateringCompany" type="text" /></label>
-        <label class="field-label">Contact Name<input id="cateringContact" type="text" /></label>
-        <label class="field-label">Phone Number<input id="cateringPhone" type="tel" inputmode="numeric" placeholder="(915) 555-1234" /></label>
-        <label class="field-label">Email Address<input id="cateringEmail" type="email" autocomplete="email" placeholder="you@example.com" required /></label>
-        <p class="receipt-hint group-receipt-hint field-wide">We'll email you a copy of your order.</p>
-      </div>
-      <fieldset class="contact-preference">
-        <legend>Preferred Contact</legend>
-        <label class="pill-radio"><input type="radio" name="cateringContactPreference" value="Text" checked /> Text</label>
-        <label class="pill-radio"><input type="radio" name="cateringContactPreference" value="Call" /> Call</label>
-      </fieldset>
-      <div class="group-order-builder">
-        <div class="builder-heading">
-          <h3>Add Individual Orders</h3>
-          <p class="muted">Enter a name, choose their burrito, add beans if needed, then add them to the group order.</p>
-          <div id="groupOrderStats" class="group-order-stats"><span>Let's build your group order.</span><strong>Start by adding the first person below.</strong></div>
-        </div>
-        <div class="form-grid">
-          <label class="field-label">Name
-            <input id="groupPersonName" type="text" placeholder="Name" />
-            <small id="groupPersonNameHint" class="field-hint hidden">* Required</small>
-          </label>
-          <label class="field-label">Burrito
-            <select id="groupBurritoSelect"></select>
-          </label>
-        </div>
-        <div class="group-options-row">
-          <label id="groupBeansOption" class="extra-option group-extra-option">
-            <input id="groupBeansCheckbox" type="checkbox" />
-            <span class="custom-checkbox" aria-hidden="true"></span>
-            <span class="extra-copy">
-              <strong>Add Beans</strong>
-              <small>+$0.25 for this person's burrito</small>
-            </span>
-          </label>
-        </div>
-        <button id="addGroupPersonButton" class="button button-primary full group-add-person-button" type="button">Add Person</button>
-        <div id="groupOrderList" class="group-order-list" aria-live="polite"></div>
-      </div>
-      <label class="field-label">Special Instructions <span>(optional)</span>
-        <textarea id="cateringInstructions" maxlength="250" placeholder="Any group notes or pickup details..."></textarea>
-      </label>
-      <div class="group-final-actions">
-        <button id="cancelCateringButton" class="button button-secondary full" type="button">Cancel Group Order</button>
-        <button id="submitCateringButton" class="button button-primary full" type="button">Review Office & Group Order</button>
-      </div>
-    </form>
-  </dialog>
+function clearReviewError() {
+  if (!els.reviewError) return;
+  els.reviewError.textContent = "";
+  els.reviewError.classList.add("hidden");
+}
 
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/menu.js"></script>
-  <script src="js/email.js"></script>
-  <script src="js/app.js"></script>
-</body>
-</html>
+function showReviewError(message) {
+  if (!els.reviewError) return showStatus(message);
+  els.reviewError.textContent = message;
+  els.reviewError.classList.remove("hidden");
+}
+
+function focusMissingField(field, message) {
+  if (field) {
+    field.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => field.focus({ preventScroll: true }), 250);
+  }
+  showStatus(message);
+}
+
+function handleReviewOrder(event) {
+  event.preventDefault();
+  clearReviewError();
+  if (!state.cart.length) return focusMissingField(els.menuGrid, "Please add at least one item before reviewing your order.");
+  if (!els.customerName.value.trim()) return focusMissingField(els.customerName, "Please enter your name.");
+  if (!isValidPhone(els.customerPhone.value)) return focusMissingField(els.customerPhone, "Please enter a valid phone number in this format: (915) 555-1234.");
+  if (!els.customerEmail.value.trim()) return focusMissingField(els.customerEmail, "Please enter your email address so we can send you a copy of your order.");
+  if (!isValidEmail(els.customerEmail.value.trim())) return focusMissingField(els.customerEmail, "Please enter a valid email address.");
+
+  const order = buildOrderPayload();
+  state.pendingReviewType = "regular";
+  state.pendingReviewOrder = order;
+  els.reviewContent.innerHTML = renderReview(order);
+  els.submitOrderButton.textContent = "Send Order";
+  clearReviewError();
+  els.reviewModal.showModal();
+}
+
+async function submitReviewedOrder() {
+  clearReviewError();
+  const order = state.pendingReviewOrder || buildOrderPayload();
+  const type = state.pendingReviewType || "regular";
+  state.lastSubmittedOrder = order;
+  els.submitOrderButton.disabled = true;
+  els.submitOrderButton.textContent = "Sending...";
+
+  try {
+    if (type === "catering") {
+      await sendCateringEmail(order);
+      state.cateringCounter += 1;
+      localStorage.setItem("ml_catering_counter", state.cateringCounter);
+      resetCateringBuilder();
+    } else {
+      await sendOrderEmail(order);
+      state.orderCounter += 1;
+      localStorage.setItem("ml_order_counter", state.orderCounter);
+      state.cart = [];
+      saveCart();
+      renderCart();
+    }
+
+    els.reviewModal.close();
+    els.confirmationOrderNumber.textContent = order.orderNumber;
+    els.confirmationModal.showModal();
+  } catch (error) {
+    console.error(error);
+    const detail = error && error.message ? error.message : String(error);
+    showReviewError(`EmailJS debug: ${detail}`);
+    showStatus("Order was not sent. See the EmailJS debug message in the review window.");
+  } finally {
+    els.submitOrderButton.disabled = false;
+    els.submitOrderButton.textContent = "Send Order";
+  }
+}
+
+function resetCateringBuilder() {
+  state.cateringItems = [];
+  state.editingGroupUid = null;
+  ["cateringCompany", "cateringContact", "cateringPhone", "cateringEmail", "cateringInstructions"].forEach(id => {
+    const field = document.getElementById(id);
+    if (field) field.value = "";
+  });
+  if (els.groupPersonName) els.groupPersonName.value = "";
+  if (els.groupBurritoSelect) els.groupBurritoSelect.value = "";
+  if (els.groupBeansCheckbox) els.groupBeansCheckbox.checked = false;
+  const textPref = document.querySelector('input[name="cateringContactPreference"][value="Text"]');
+  if (textPref) textPref.checked = true;
+  saveCateringItems();
+  renderGroupOrderList();
+}
+
+function resetOrder() {
+  els.confirmationModal.close();
+  els.customerForm.reset();
+  initializePhoneField(els.customerPhone);
+  document.querySelector('input[name="contactPreference"][value="Text"]').checked = true;
+  state.pendingReviewOrder = null;
+  state.pendingReviewType = "regular";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function reviewCateringOrder() {
+  clearReviewError();
+  const company = document.getElementById("cateringCompany").value.trim();
+  const contact = document.getElementById("cateringContact").value.trim();
+  const phone = document.getElementById("cateringPhone").value.trim();
+  const email = document.getElementById("cateringEmail").value.trim();
+
+  if (!contact) return focusMissingField(document.getElementById("cateringContact"), "Please enter a contact name for the group order.");
+  if (!isValidPhone(phone)) return focusMissingField(document.getElementById("cateringPhone"), "Please enter a valid phone number in this format: (915) 555-1234.");
+  if (!email) return focusMissingField(document.getElementById("cateringEmail"), "Please enter an email address so we can send a copy of the group order.");
+  if (!isValidEmail(email)) return focusMissingField(document.getElementById("cateringEmail"), "Please enter a valid email address.");
+  if (!state.cateringItems.length) return focusMissingField(els.groupPersonName, "Please add at least one person's order before reviewing.");
+
+  const order = buildCateringPayload();
+  state.pendingReviewType = "catering";
+  state.pendingReviewOrder = order;
+  els.reviewContent.innerHTML = renderCateringReview(order);
+  els.submitOrderButton.textContent = "Send Group Order";
+  clearReviewError();
+  if (els.cateringModal.open) els.cateringModal.close();
+  els.reviewModal.showModal();
+}
+
+function buildOrderPayload() {
+  const totals = calculateTotals();
+  return {
+    orderNumber: `ML-${state.orderCounter}`,
+    date: new Date().toLocaleDateString(),
+    time: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    customer: {
+      name: els.customerName.value.trim(),
+      phone: els.customerPhone.value.trim(),
+      email: els.customerEmail.value.trim(),
+      contactPreference: document.querySelector('input[name="contactPreference"]:checked').value,
+      specialInstructions: els.specialInstructions.value.trim()
+    },
+    items: state.cart,
+    totals
+  };
+}
+
+function buildCateringPayload() {
+  const items = state.cateringItems.map(item => ({ ...item }));
+  const subtotal = items.reduce((sum, item) => sum + item.price, 0);
+  const tax = SETTINGS.taxEnabled ? subtotal * SETTINGS.taxRate : 0;
+  return {
+    orderNumber: `ML-G${state.cateringCounter}`,
+    date: new Date().toLocaleDateString(),
+    timeSubmitted: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+    company: document.getElementById("cateringCompany").value.trim() || "Office & Group Order",
+    contactName: document.getElementById("cateringContact").value.trim(),
+    phone: document.getElementById("cateringPhone").value.trim(),
+    email: document.getElementById("cateringEmail").value.trim(),
+    contactPreference: document.querySelector('input[name="cateringContactPreference"]:checked').value,
+    items,
+    estimatedBurritos: items.length,
+    specialInstructions: document.getElementById("cateringInstructions").value.trim(),
+    totals: { subtotal, tax, total: subtotal + tax },
+    requiresManualPricing: false
+  };
+}
+
+function renderReview(order) {
+  return `
+    <div class="review-block"><h3>${order.orderNumber}</h3><p>${order.date} at ${order.time}</p></div>
+    <div class="review-block"><h3>Order</h3>${order.items.map(item => `<p><strong>1 × ${item.name}</strong>${item.extras.map(extra => `<br><span>+ ${extra.name}</span>`).join("")}</p>`).join("")}</div>
+    <div class="review-block"><h3>Customer</h3><p>${escapeHtml(order.customer.name)}<br>${escapeHtml(order.customer.phone)}${order.customer.email ? `<br>${escapeHtml(order.customer.email)}` : ""}<br>Preferred Contact: ${order.customer.contactPreference}</p>${order.customer.specialInstructions ? `<p><strong>Notes:</strong><br>${escapeHtml(order.customer.specialInstructions)}</p>` : ""}</div>
+    <div class="review-totals"><div><span>Subtotal</span><strong>${formatMoney(order.totals.subtotal)}</strong></div>${SETTINGS.taxEnabled ? `<div><span>Tax</span><strong>${formatMoney(order.totals.tax)}</strong></div>` : ""}<div><span>Total</span><strong>${formatMoney(order.totals.total)}</strong></div></div>
+  `;
+}
+
+function renderCateringReview(order) {
+  return `
+    <div class="review-block"><h3>${order.orderNumber}</h3><p>${order.date} at ${order.timeSubmitted}</p></div>
+    <div class="review-block"><h3>Group</h3><p><strong>${escapeHtml(order.company)}</strong><br>${escapeHtml(order.contactName)}<br>${escapeHtml(order.phone)}${order.email ? `<br>${escapeHtml(order.email)}` : ""}<br>Preferred Contact: ${order.contactPreference}</p></div>
+    <div class="review-block"><h3>Individual Orders</h3>${order.items.map(item => `<p><strong>${escapeHtml(item.personName)}</strong><br>1 × ${escapeHtml(item.name)}${item.extras.map(extra => `<br><span>+ ${escapeHtml(extra.name)}</span>`).join("")}</p>`).join("")}<p><strong>Total burritos:</strong> ${order.estimatedBurritos}</p></div>
+    ${order.specialInstructions ? `<div class="review-block"><h3>Special Instructions</h3><p>${escapeHtml(order.specialInstructions)}</p></div>` : ""}
+    <div class="review-totals"><div><span>Subtotal</span><strong>${formatMoney(order.totals.subtotal)}</strong></div>${SETTINGS.taxEnabled ? `<div><span>Tax</span><strong>${formatMoney(order.totals.tax)}</strong></div>` : ""}<div><span>Total</span><strong>${formatMoney(order.totals.total)}</strong></div></div>
+  `;
+}
+
+function calculateTotals() {
+  const subtotal = state.cart.reduce((sum, item) => sum + item.price, 0);
+  const tax = SETTINGS.taxEnabled ? subtotal * SETTINGS.taxRate : 0;
+  return { subtotal, tax, total: subtotal + tax };
+}
+
+function getBurritoCount() {
+  return state.cart.filter(item => item.type === "burrito").length;
+}
+
+function findMenuItem(id) {
+  return MENU.categories.flatMap(category => category.items).find(item => item.id === id);
+}
+
+function openCart() {
+  els.cartDrawer.classList.add("open");
+  els.cartDrawer.setAttribute("aria-hidden", "false");
+  els.drawerBackdrop.classList.remove("hidden");
+}
+
+function closeCart() {
+  els.cartDrawer.classList.remove("open");
+  els.cartDrawer.setAttribute("aria-hidden", "true");
+  els.drawerBackdrop.classList.add("hidden");
+}
+
+function initializePhoneField(input) {
+  if (!input) return;
+  if (!input.value.trim()) input.value = `(${SETTINGS.defaultAreaCode}) `;
+}
+
+function ensureAreaCode(input) {
+  if (!input) return;
+  if (!input.value.replace(/\D/g, "")) {
+    input.value = `(${SETTINGS.defaultAreaCode}) `;
+  }
+}
+
+function formatPhone(value) {
+  let digits = value.replace(/\D/g, "").slice(0, 10);
+  const defaultArea = SETTINGS.defaultAreaCode || "915";
+
+  if (!digits) digits = defaultArea;
+
+  const a = digits.slice(0, 3);
+  const b = digits.slice(3, 6);
+  const c = digits.slice(6, 10);
+  if (digits.length > 6) return `(${a}) ${b}-${c}`;
+  if (digits.length > 3) return `(${a}) ${b}`;
+  if (digits.length === 3) return `(${a}) `;
+  if (digits.length > 0) return `(${a}`;
+  return "";
+}
+
+function isValidPhone(value) {
+  return /^\(\d{3}\) \d{3}-\d{4}$/.test(value);
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
+}
+
+function formatMoney(value) {
+  return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+}
+
+function formatMenuPrice(value) {
+  return Number.isInteger(value) ? `$${value}` : formatMoney(value);
+}
+
+function showStatus(message) {
+  els.statusMessage.textContent = message;
+  els.statusMessage.classList.remove("hidden");
+  setTimeout(() => els.statusMessage.classList.add("hidden"), 4500);
+}
+
+function toggle(element, shouldShow) {
+  element.classList.toggle("hidden", !shouldShow);
+}
+
+function saveCart() {
+  localStorage.setItem("ml_cart", JSON.stringify(state.cart));
+}
+
+function loadCart() {
+  try { return JSON.parse(localStorage.getItem("ml_cart")) || []; }
+  catch { return []; }
+}
+
+function saveCateringItems() {
+  localStorage.setItem("ml_catering_items", JSON.stringify(state.cateringItems));
+}
+
+function loadCateringItems() {
+  try { return JSON.parse(localStorage.getItem("ml_catering_items")) || []; }
+  catch { return []; }
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
+}
