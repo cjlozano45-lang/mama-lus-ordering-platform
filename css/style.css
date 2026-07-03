@@ -826,3 +826,80 @@ input:focus, textarea:focus, select:focus {
   background: var(--navy) !important;
   color: var(--white) !important;
 }
+
+/* Stabilization Build 7: final button color audit. No transparent action buttons. */
+:root { --danger-red: #A32323; --danger-red-dark: #8f1f1f; --disabled-gray: #6B7280; }
+
+/* Red action buttons: cancel, back, clear, remove. */
+#clearCartButton,
+#cancelGroupOrder,
+#backFromReview,
+#backToGroupEdit,
+.cancel-button,
+.back-button,
+.clear-button,
+.danger-button,
+.button-danger,
+.button-cancel,
+.button-back,
+.cart-actions .button-secondary,
+.review-actions .button-secondary,
+.group-final-actions .button-secondary,
+.modal-card .button-secondary:not(.customize-action),
+button[data-action="cancel"],
+button[data-action="back"],
+button[data-action="clear"] {
+  background: var(--danger-red) !important;
+  color: #ffffff !important;
+  border: 2px solid var(--danger-red) !important;
+  box-shadow: 0 12px 28px rgba(163, 35, 35, 0.24) !important;
+  opacity: 1 !important;
+}
+
+#clearCartButton:hover,
+#cancelGroupOrder:hover,
+#backFromReview:hover,
+#backToGroupEdit:hover,
+.cancel-button:hover,
+.back-button:hover,
+.clear-button:hover,
+.danger-button:hover,
+.button-danger:hover,
+.button-cancel:hover,
+.button-back:hover,
+.cart-actions .button-secondary:hover,
+.review-actions .button-secondary:hover,
+.group-final-actions .button-secondary:hover,
+.modal-card .button-secondary:not(.customize-action):hover,
+button[data-action="cancel"]:hover,
+button[data-action="back"]:hover,
+button[data-action="clear"]:hover {
+  background: var(--danger-red-dark) !important;
+  border-color: var(--danger-red-dark) !important;
+  color: #ffffff !important;
+}
+
+/* Disabled buttons should never look transparent/white-on-white. */
+.button:disabled,
+button:disabled,
+.button-disabled {
+  background: var(--disabled-gray) !important;
+  color: #ffffff !important;
+  border: 2px solid var(--disabled-gray) !important;
+  box-shadow: none !important;
+  opacity: .75 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Preserve white utility buttons. */
+.customize-action,
+.edit-name-button,
+.edit-burrito-button,
+.duplicate-button,
+.group-order-item .button-secondary {
+  background: #ffffff !important;
+  color: var(--navy) !important;
+  border: 1px solid rgba(11,30,59,.18) !important;
+  box-shadow: none !important;
+}
