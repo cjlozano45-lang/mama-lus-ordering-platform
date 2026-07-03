@@ -779,3 +779,10 @@ input:focus, textarea:focus, select:focus {
     min-height: 58px;
   }
 }
+
+
+/* Stabilization Build 1 - group order critical fixes */
+.group-add-person-button { margin: 10px 0 18px; min-height: 58px; font-size: 1rem; }
+.group-final-actions { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
+@media (min-width: 720px) { .group-final-actions { grid-template-columns: 1fr 1fr; } }
+.group-options-row:has(.group-extra-option.hidden) { display: none; }
