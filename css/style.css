@@ -802,3 +802,27 @@ input:focus, textarea:focus, select:focus {
   background: #8f1f1f;
   border-color: #8f1f1f;
 }
+
+
+/* Stabilization Build 6: eliminate transparent action buttons. */
+.button.button-secondary:not(.customize-action) {
+  background: #A32323 !important;
+  color: #ffffff !important;
+  border: 2px solid #A32323 !important;
+  box-shadow: 0 12px 28px rgba(163, 35, 35, 0.22) !important;
+}
+.button.button-secondary:not(.customize-action):hover {
+  background: #8f1f1f !important;
+  border-color: #8f1f1f !important;
+  color: #ffffff !important;
+}
+.customize-action {
+  background: var(--white) !important;
+  color: var(--navy) !important;
+  border: 1px solid rgba(11,30,59,.18) !important;
+  box-shadow: none !important;
+}
+.customize-action:hover {
+  background: var(--navy) !important;
+  color: var(--white) !important;
+}
