@@ -786,3 +786,19 @@ input:focus, textarea:focus, select:focus {
 .group-final-actions { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
 @media (min-width: 720px) { .group-final-actions { grid-template-columns: 1fr 1fr; } }
 .group-options-row:has(.group-extra-option.hidden) { display: none; }
+
+
+/* Stabilization Build 2: restore high-contrast red modal navigation buttons. */
+.modal-card .review-actions .button-secondary,
+.modal-card .group-final-actions .button-secondary {
+  background: #A32323;
+  color: #ffffff;
+  border-color: #A32323;
+  box-shadow: 0 12px 28px rgba(163, 35, 35, 0.22);
+}
+
+.modal-card .review-actions .button-secondary:hover,
+.modal-card .group-final-actions .button-secondary:hover {
+  background: #8f1f1f;
+  border-color: #8f1f1f;
+}

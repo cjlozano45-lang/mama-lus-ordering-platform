@@ -121,6 +121,13 @@ function bindEvents() {
     els.cateringModal.addEventListener("keydown", preventCateringEnterSubmit);
     const cateringForm = els.cateringModal.querySelector("form");
     if (cateringForm) cateringForm.addEventListener("submit", (event) => event.preventDefault());
+    const cateringCloseButton = els.cateringModal.querySelector(".modal-close");
+    if (cateringCloseButton) {
+      cateringCloseButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        closeGroupOrderAndReturnToMenu();
+      });
+    }
   }
   els.customerForm.addEventListener("submit", handleReviewOrder);
   els.submitOrderButton.addEventListener("click", submitReviewedOrder);

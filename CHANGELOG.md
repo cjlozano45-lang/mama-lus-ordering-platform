@@ -6,3 +6,10 @@
 - Added Cancel Group Order button.
 - Bean & Cheese hides Add Beans and cannot receive beans extra.
 - Regular customize also hides Add Beans for Bean & Cheese.
+
+
+## Stabilization Build 2
+- Fixed Office & Group Orders X close button to use the same close logic as Cancel Group Order.
+- Kept background-click close behavior.
+- Restored red styling for modal Back/Cancel-style buttons.
+- Cleaned up group order list markup.
