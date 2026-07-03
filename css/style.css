@@ -920,3 +920,46 @@ button:disabled,
   border-color: rgba(11,30,59,.35) !important;
   transform: translateY(-2px);
 }
+
+/* LC1 customer experience polish */
+.button.is-sending {
+  pointer-events: none;
+  gap: 10px;
+}
+.button-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid rgba(8,32,68,.25);
+  border-top-color: var(--navy);
+  display: inline-block;
+  animation: mamaSpin .8s linear infinite;
+}
+@keyframes mamaSpin { to { transform: rotate(360deg); } }
+.cart-pulse { animation: cartPulse .35s ease; }
+@keyframes cartPulse {
+  0% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-3px) scale(1.06); }
+  100% { transform: translateY(0) scale(1); }
+}
+.success-mark { animation: successPop .35s ease both; }
+@keyframes successPop {
+  0% { transform: scale(.78); opacity: .4; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* LC1 Build 4 customer guidance */
+.field-label-error {
+  color: var(--red);
+}
+.field-label-error input,
+.field-label-error select,
+.field-label-error textarea {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 4px rgba(163, 35, 35, 0.14) !important;
+}
+.validation-hint {
+  color: var(--red) !important;
+  font-weight: 900;
+  margin-top: 6px;
+}
