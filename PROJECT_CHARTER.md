@@ -904,17 +904,46 @@ button:disabled,
   box-shadow: none !important;
 }
 
-/* LC1 Build 1: restore Office & Group Orders as white alternate CTA. */
-#openCateringHero,
-#openCatering {
+/* LC1 Build 2: restore home Office & Group Orders button to white.
+   This must override the broad red secondary-button stabilization rules. */
+#openCateringHero.button-secondary,
+.hero-identity #openCateringHero.button-secondary {
   background: #ffffff !important;
   color: var(--navy) !important;
-  border: 2px solid rgba(11, 30, 59, 0.22) !important;
-  box-shadow: 0 12px 28px rgba(4, 30, 66, 0.12) !important;
+  border: 2px solid rgba(11,30,59,.18) !important;
+  box-shadow: 0 12px 28px rgba(11,30,59,.10) !important;
 }
-#openCateringHero:hover,
-#openCatering:hover {
-  background: #f8f5ef !important;
+#openCateringHero.button-secondary:hover,
+.hero-identity #openCateringHero.button-secondary:hover {
+  background: #ffffff !important;
   color: var(--navy) !important;
-  border-color: rgba(11, 30, 59, 0.34) !important;
+  border-color: rgba(11,30,59,.35) !important;
+  transform: translateY(-2px);
+}
+
+/* LC1 customer experience polish */
+.button.is-sending {
+  pointer-events: none;
+  gap: 10px;
+}
+.button-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid rgba(8,32,68,.25);
+  border-top-color: var(--navy);
+  display: inline-block;
+  animation: mamaSpin .8s linear infinite;
+}
+@keyframes mamaSpin { to { transform: rotate(360deg); } }
+.cart-pulse { animation: cartPulse .35s ease; }
+@keyframes cartPulse {
+  0% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-3px) scale(1.06); }
+  100% { transform: translateY(0) scale(1); }
+}
+.success-mark { animation: successPop .35s ease both; }
+@keyframes successPop {
+  0% { transform: scale(.78); opacity: .4; }
+  100% { transform: scale(1); opacity: 1; }
 }
