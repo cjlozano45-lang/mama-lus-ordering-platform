@@ -903,3 +903,20 @@ button:disabled,
   border: 1px solid rgba(11,30,59,.18) !important;
   box-shadow: none !important;
 }
+
+/* LC1 Build 2: restore home Office & Group Orders button to white.
+   This must override the broad red secondary-button stabilization rules. */
+#openCateringHero.button-secondary,
+.hero-identity #openCateringHero.button-secondary {
+  background: #ffffff !important;
+  color: var(--navy) !important;
+  border: 2px solid rgba(11,30,59,.18) !important;
+  box-shadow: 0 12px 28px rgba(11,30,59,.10) !important;
+}
+#openCateringHero.button-secondary:hover,
+.hero-identity #openCateringHero.button-secondary:hover {
+  background: #ffffff !important;
+  color: var(--navy) !important;
+  border-color: rgba(11,30,59,.35) !important;
+  transform: translateY(-2px);
+}
