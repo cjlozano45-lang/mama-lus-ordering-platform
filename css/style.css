@@ -1,13 +1,9 @@
  :root {
   --navy: #082044;
   --navy-2: #123a6f;
-  --gold: #c5ccd4;
-  --gold-dark: #b3bbc5;
+  --gold: #f2aa22;
+  --gold-dark: #d69012;
   --silver: #c8ccd2;
-  --silver-top: #d7dde3;
-  --silver-mid: #c5ccd4;
-  --silver-bottom: #b3bbc5;
-  --silver-border: #8e98a3;
   --cream: #fbf7ef;
   --warm: #f4eadb;
   --white: #ffffff;
@@ -57,24 +53,8 @@ p { line-height: 1.6; }
 .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .button { border: 0; border-radius: 999px; min-height: 48px; padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, background .18s ease; }
 .button:hover { transform: translateY(-2px); }
-.button-primary {
-  background: linear-gradient(180deg, var(--silver-top) 0%, var(--silver-mid) 52%, var(--silver-bottom) 100%);
-  color: var(--navy);
-  border: 1px solid var(--silver-border);
-  box-shadow: 0 12px 28px rgba(14, 31, 54, .18), inset 0 1px 0 rgba(255,255,255,.75);
-  text-shadow: 0 1px 0 rgba(255,255,255,.35);
-}
-.button-primary:hover {
-  background: linear-gradient(180deg, #e0e5ea 0%, #cbd2da 52%, #b8c0ca 100%);
-  color: var(--navy);
-  transform: translateY(-2px);
-  box-shadow: 0 16px 34px rgba(14, 31, 54, .22), inset 0 1px 0 rgba(255,255,255,.82);
-}
-.button-primary:active {
-  transform: translateY(0);
-  background: linear-gradient(180deg, #b3bbc5 0%, #c5ccd4 55%, #d7dde3 100%);
-  box-shadow: 0 8px 18px rgba(14, 31, 54, .16), inset 0 2px 4px rgba(14,31,54,.16);
-}
+.button-primary { background: var(--gold); color: var(--navy); box-shadow: 0 12px 28px rgba(242,170,34,.28); }
+.button-primary:hover { background: var(--gold-dark); color: var(--navy); }
 .button-secondary { background: var(--navy); color: white; box-shadow: 0 12px 28px rgba(8,32,68,.22); border: 1px solid rgba(242,170,34,.55); }
 .button-small { min-height: 40px; padding: 0 16px; font-size: .9rem; }
 .button-disabled { background: #d4d4d4; color: #777; box-shadow: none; }
@@ -984,25 +964,106 @@ button:disabled,
   margin-top: 6px;
 }
 
-/* LC1 Build 6: Silver primary button theme.
-   Replaces the previous gold primary-action accent with brushed silver.
-   Red cancel/back/remove buttons and the white Office & Group Orders button remain unchanged. */
+/* v1.0.0-rc8: Theme System + Brushed Silver primary buttons
+   Final override placed at the end so later stabilization rules do not flatten the effect. */
 :root {
-  --gold: #C0C7CF;
-  --gold-dark: #AEB7C1;
+  --primary-silver-top: #F3F6F8;
+  --primary-silver-highlight: #E1E6EB;
+  --primary-silver-mid: #C9D0D8;
+  --primary-silver-bottom: #AEB7C2;
+  --primary-silver-border: #7F8A96;
+  --primary-silver-pressed: #9FA9B5;
+  --primary-text: #0B1E3B;
 }
-.button-primary {
-  background: #C0C7CF !important;
-  color: var(--navy) !important;
-  border: 2px solid #8F98A3 !important;
-  box-shadow: 0 12px 28px rgba(143, 152, 163, 0.28) !important;
+
+.button-primary,
+button.button-primary,
+a.button-primary {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.16) 0px,
+      rgba(255,255,255,.16) 1px,
+      rgba(11,30,59,.035) 2px,
+      rgba(11,30,59,.035) 3px
+    ),
+    linear-gradient(
+      180deg,
+      var(--primary-silver-top) 0%,
+      var(--primary-silver-highlight) 18%,
+      var(--primary-silver-mid) 52%,
+      var(--primary-silver-bottom) 100%
+    ) !important;
+  color: var(--primary-text) !important;
+  border: 1px solid var(--primary-silver-border) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.90),
+    inset 0 -1px 0 rgba(11,30,59,.12),
+    0 10px 22px rgba(11,30,59,.20) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.55);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease, background .18s ease;
 }
-.button-primary:hover {
-  background: #AEB7C1 !important;
-  border-color: #7F8994 !important;
-  color: var(--navy) !important;
+
+.button-primary:hover,
+button.button-primary:hover,
+a.button-primary:hover {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.18) 0px,
+      rgba(255,255,255,.18) 1px,
+      rgba(11,30,59,.04) 2px,
+      rgba(11,30,59,.04) 3px
+    ),
+    linear-gradient(
+      180deg,
+      #FFFFFF 0%,
+      #E7EBEF 20%,
+      #D0D7DE 54%,
+      #B8C1CB 100%
+    ) !important;
+  color: var(--primary-text) !important;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 -1px 0 rgba(11,30,59,.14),
+    0 14px 28px rgba(11,30,59,.24) !important;
 }
-/* Keep the home Office & Group Orders button white. */
+
+.button-primary:active,
+button.button-primary:active,
+a.button-primary:active {
+  transform: translateY(0);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,.12) 0px,
+      rgba(255,255,255,.12) 1px,
+      rgba(11,30,59,.05) 2px,
+      rgba(11,30,59,.05) 3px
+    ),
+    linear-gradient(
+      180deg,
+      var(--primary-silver-pressed) 0%,
+      #B8C1CB 45%,
+      #D7DDE3 100%
+    ) !important;
+  box-shadow:
+    inset 0 2px 6px rgba(11,30,59,.22),
+    0 6px 14px rgba(11,30,59,.18) !important;
+}
+
+.button-primary:disabled,
+button.button-primary:disabled {
+  background: #6B7280 !important;
+  color: #FFFFFF !important;
+  border-color: #6B7280 !important;
+  box-shadow: none !important;
+  text-shadow: none;
+  opacity: .75 !important;
+}
+
+/* Keep the alternate home action white, not brushed silver. */
 #openCateringHero.button-secondary,
 .hero-identity #openCateringHero.button-secondary {
   background: #ffffff !important;
