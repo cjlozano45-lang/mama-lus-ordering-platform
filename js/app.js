@@ -140,6 +140,15 @@ function bindEvents() {
       });
     }
   }
+  if (els.customizeModal) {
+    const customizeCloseButton = els.customizeModal.querySelector(".modal-close");
+    if (customizeCloseButton) {
+      customizeCloseButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (els.customizeModal.open) els.customizeModal.close();
+      });
+    }
+  }
   els.customerForm.addEventListener("submit", handleReviewOrder);
   els.submitOrderButton.addEventListener("click", submitReviewedOrder);
   els.newOrderButton.addEventListener("click", resetOrder);
