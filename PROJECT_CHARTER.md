@@ -1,9 +1,13 @@
  :root {
   --navy: #082044;
   --navy-2: #123a6f;
-  --gold: #f2aa22;
-  --gold-dark: #d69012;
+  --gold: #c5ccd4;
+  --gold-dark: #b3bbc5;
   --silver: #c8ccd2;
+  --silver-top: #d7dde3;
+  --silver-mid: #c5ccd4;
+  --silver-bottom: #b3bbc5;
+  --silver-border: #8e98a3;
   --cream: #fbf7ef;
   --warm: #f4eadb;
   --white: #ffffff;
@@ -53,8 +57,24 @@ p { line-height: 1.6; }
 .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .button { border: 0; border-radius: 999px; min-height: 48px; padding: 0 22px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease, background .18s ease; }
 .button:hover { transform: translateY(-2px); }
-.button-primary { background: var(--gold); color: var(--navy); box-shadow: 0 12px 28px rgba(242,170,34,.28); }
-.button-primary:hover { background: var(--gold-dark); color: var(--navy); }
+.button-primary {
+  background: linear-gradient(180deg, var(--silver-top) 0%, var(--silver-mid) 52%, var(--silver-bottom) 100%);
+  color: var(--navy);
+  border: 1px solid var(--silver-border);
+  box-shadow: 0 12px 28px rgba(14, 31, 54, .18), inset 0 1px 0 rgba(255,255,255,.75);
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
+}
+.button-primary:hover {
+  background: linear-gradient(180deg, #e0e5ea 0%, #cbd2da 52%, #b8c0ca 100%);
+  color: var(--navy);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(14, 31, 54, .22), inset 0 1px 0 rgba(255,255,255,.82);
+}
+.button-primary:active {
+  transform: translateY(0);
+  background: linear-gradient(180deg, #b3bbc5 0%, #c5ccd4 55%, #d7dde3 100%);
+  box-shadow: 0 8px 18px rgba(14, 31, 54, .16), inset 0 2px 4px rgba(14,31,54,.16);
+}
 .button-secondary { background: var(--navy); color: white; box-shadow: 0 12px 28px rgba(8,32,68,.22); border: 1px solid rgba(242,170,34,.55); }
 .button-small { min-height: 40px; padding: 0 16px; font-size: .9rem; }
 .button-disabled { background: #d4d4d4; color: #777; box-shadow: none; }
@@ -946,4 +966,47 @@ button:disabled,
 @keyframes successPop {
   0% { transform: scale(.78); opacity: .4; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+/* LC1 Build 4 customer guidance */
+.field-label-error {
+  color: var(--red);
+}
+.field-label-error input,
+.field-label-error select,
+.field-label-error textarea {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 4px rgba(163, 35, 35, 0.14) !important;
+}
+.validation-hint {
+  color: var(--red) !important;
+  font-weight: 900;
+  margin-top: 6px;
+}
+
+/* LC1 Build 6: Silver primary button theme.
+   Replaces the previous gold primary-action accent with brushed silver.
+   Red cancel/back/remove buttons and the white Office & Group Orders button remain unchanged. */
+:root {
+  --gold: #C0C7CF;
+  --gold-dark: #AEB7C1;
+}
+.button-primary {
+  background: #C0C7CF !important;
+  color: var(--navy) !important;
+  border: 2px solid #8F98A3 !important;
+  box-shadow: 0 12px 28px rgba(143, 152, 163, 0.28) !important;
+}
+.button-primary:hover {
+  background: #AEB7C1 !important;
+  border-color: #7F8994 !important;
+  color: var(--navy) !important;
+}
+/* Keep the home Office & Group Orders button white. */
+#openCateringHero.button-secondary,
+.hero-identity #openCateringHero.button-secondary {
+  background: #ffffff !important;
+  color: var(--navy) !important;
+  border: 2px solid rgba(11,30,59,.18) !important;
+  box-shadow: 0 12px 28px rgba(11,30,59,.10) !important;
 }
