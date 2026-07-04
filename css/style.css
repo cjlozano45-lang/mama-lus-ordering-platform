@@ -963,3 +963,30 @@ button:disabled,
   font-weight: 900;
   margin-top: 6px;
 }
+
+/* LC1 Build 6: Silver primary button theme.
+   Replaces the previous gold primary-action accent with brushed silver.
+   Red cancel/back/remove buttons and the white Office & Group Orders button remain unchanged. */
+:root {
+  --gold: #C0C7CF;
+  --gold-dark: #AEB7C1;
+}
+.button-primary {
+  background: #C0C7CF !important;
+  color: var(--navy) !important;
+  border: 2px solid #8F98A3 !important;
+  box-shadow: 0 12px 28px rgba(143, 152, 163, 0.28) !important;
+}
+.button-primary:hover {
+  background: #AEB7C1 !important;
+  border-color: #7F8994 !important;
+  color: var(--navy) !important;
+}
+/* Keep the home Office & Group Orders button white. */
+#openCateringHero.button-secondary,
+.hero-identity #openCateringHero.button-secondary {
+  background: #ffffff !important;
+  color: var(--navy) !important;
+  border: 2px solid rgba(11,30,59,.18) !important;
+  box-shadow: 0 12px 28px rgba(11,30,59,.10) !important;
+}

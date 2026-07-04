@@ -19,3 +19,9 @@
 - Converted transparent secondary action buttons to solid Mama Lu's red.
 - Made modal X buttons true non-submit buttons so they close without validation on desktop.
 - Preserved working group-order builder and Bean & Cheese rules.
+
+## LC1 Build 6 - Silver Primary Buttons
+- Changed primary action buttons from gold to brushed silver.
+- Preserved red Cancel/Back/Clear/Remove buttons.
+- Preserved white Office & Group Orders home button.
+- No ordering, group order, validation, or email logic changes.
