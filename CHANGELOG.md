@@ -25,3 +25,9 @@
 - Preserved red Cancel/Back/Clear/Remove buttons.
 - Preserved white Office & Group Orders home button.
 - No ordering, group order, validation, or email logic changes.
+
+
+## LC1 Build 7 - Brushed Silver
+- Changed primary buttons from flat silver to a subtle brushed silver effect.
+- Preserved red cancel/back/clear buttons and white Office & Group Orders button.
+- No ordering or email logic changes.
